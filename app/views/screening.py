@@ -309,7 +309,7 @@ def render_jd_section():
 
     st.markdown("")
     disabled = (total_pct == 0) or (th_pass <= th_hold)
-    if st.button("📝 生成 JD 描述并锁定筛选规则", type="primary",
+    if st.button("📝 生成JD描述", type="primary",
                  key="gen_jd_final", disabled=disabled):
         basics = {
             "position": st.session_state["jd_position"].strip(),
@@ -340,7 +340,7 @@ def render_jd_section():
                 s.update(label="JD 描述已生成", state="complete")
             except Exception as e:
                 jd_text = f"> ⚠ LLM 生成失败：{e}\n>\n> 请手动补写 JD 文案。"
-                s.update(label="LLM 失败，占位文案已放入 ②", state="error")
+                s.update(label="LLM 生成失败", state="error")
 
         save_jd({
             "title": req["title"],
@@ -351,68 +351,59 @@ def render_jd_section():
             "jd_text_generated": jd_text,
             "raw_text": st.session_state.get("jd_raw", ""),
         })
-        st.success("已保存基本信息、筛选规则和 JD 描述；下方 ② 查看/编辑生成的 JD")
+        st.success("已生成 JD 描述，可在下方查看并编辑")
         st.rerun()
+
+    # 生成后直接在按钮下方展示最终 JD 描述，可编辑保存
+    jd = load_jd() or {}
+    jd_text = jd.get("jd_text_generated", "")
+    if jd_text:
+        req = jd.get("requirements", {})
+        h = req.get("hard", {})
+        w = jd.get("weights", {}) or {}
+        basics = jd.get("basics", {}) or {}
+        th = jd.get("thresholds", {}) or {}
+        must_preview = "、".join(h.get("must_skills", [])[:3]) or "—"
+        line1 = " · ".join(x for x in [
+            f"**{basics.get('position') or req.get('title', '岗位')}**",
+            basics.get("dept") or None,
+            (f"招聘 {basics.get('count')} 人" if basics.get("count") else None),
+            basics.get("level") or None,
+            basics.get("location") or None,
+        ] if x)
+        line2 = " · ".join([
+            f"学历 {h.get('degree', '—')}",
+            f"≥{int(h.get('min_years', 0) or 0)} 年",
+            f"必备：{must_preview}",
+        ])
+        line3 = "权重 " + " / ".join(
+            f"{_DIM_LABEL[d]} {int(w.get(d, 0) * 100)}%" for d in _WEIGHT_DIMS)
+        if th:
+            line3 += f" · 分档 ≥{th.get('pass', 80)} 推进 / ≥{th.get('hold', 60)} 待定"
+        st.caption(line1)
+        st.caption(line2 + " · " + line3)
+
+        edited = st.text_area(
+            "招聘文案（Markdown，可编辑）",
+            value=jd_text,
+            height=320,
+            key="jd_text_edit",
+        )
+        c1, c2 = st.columns([1, 5])
+        with c1:
+            if st.button("💾 保存 JD", key="save_jd_text"):
+                jd["jd_text_generated"] = edited
+                save_jd(jd)
+                st.success("已保存")
+                st.rerun()
+        with c2:
+            with st.expander("预览渲染效果", expanded=False):
+                st.markdown(edited)
 
 
 # ────────────────────────────────────────────────────────────
 # 2. 简历库导入与解析
 # ────────────────────────────────────────────────────────────
-def render_jd_text_section():
-    """② 展示 LLM 生成的最终 JD 描述，允许编辑保存。"""
-    st.subheader("② 最终 JD 描述")
-    jd = load_jd() or {}
-    req = jd.get("requirements")
-    jd_text = jd.get("jd_text_generated", "")
-
-    if not req:
-        st.info("请先在 ① 填写任职要求并点「生成 JD 描述并保存」。")
-        return
-    if not jd_text:
-        st.info("已保存任职要求，但尚未生成 JD 描述。回到 ① 点「生成 JD 描述并保存」。")
-        return
-
-    # 顶部结构化摘要
-    h = req.get("hard", {})
-    w = jd.get("weights", {}) or {}
-    basics = jd.get("basics", {}) or {}
-    th = jd.get("thresholds", {}) or {}
-    must_preview = "、".join(h.get("must_skills", [])[:3]) or "—"
-    line1 = " · ".join(x for x in [
-        f"**{basics.get('position') or req.get('title', '岗位')}**",
-        basics.get("dept") or None,
-        (f"招聘 {basics.get('count')} 人" if basics.get("count") else None),
-        basics.get("level") or None,
-        basics.get("location") or None,
-    ] if x)
-    line2 = " · ".join([
-        f"学历 {h.get('degree', '—')}",
-        f"≥{int(h.get('min_years', 0) or 0)} 年",
-        f"必备：{must_preview}",
-    ])
-    line3 = "权重 " + " / ".join(
-        f"{_DIM_LABEL[d]} {int(w.get(d, 0) * 100)}%" for d in _WEIGHT_DIMS)
-    if th:
-        line3 += f" · 分档 ≥{th.get('pass', 80)} 推进 / ≥{th.get('hold', 60)} 待定"
-    st.caption(line1)
-    st.caption(line2 + " · " + line3)
-
-    edited = st.text_area(
-        "招聘文案（Markdown，可编辑）",
-        value=jd_text,
-        height=320,
-        key="jd_text_edit",
-    )
-    c1, c2 = st.columns([1, 5])
-    with c1:
-        if st.button("💾 保存 JD", key="save_jd_text"):
-            jd["jd_text_generated"] = edited
-            save_jd(jd)
-            st.success("已保存")
-            st.rerun()
-    with c2:
-        with st.expander("预览渲染效果", expanded=False):
-            st.markdown(edited)
 
 
 def _infer_name(filename: str) -> str:
@@ -924,8 +915,6 @@ def _render_candidate_card(c: dict, rec_pill_map: dict, decision_opts: list):
 def render():
     st.header("简历筛选")
     render_jd_section()
-    st.divider()
-    render_jd_text_section()
     st.divider()
     render_resume_library()
     st.divider()
