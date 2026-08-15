@@ -939,7 +939,7 @@ def _render_candidate_card(c: dict, rec_pill_map: dict, decision_opts: list):
 # 页面入口
 # ────────────────────────────────────────────────────────────
 def render():
-    st.header("简历筛选（AI 智能甄选）")
+    st.header("简历筛选")
     render_jd_section()
     st.divider()
     render_jd_text_section()
