@@ -862,25 +862,22 @@ st.markdown(f"""
 #   `active_tab` 里存的旧中文标签就再也匹配不上任何选项 —— 切语言会把
 #   用户踢回首页。分离之后，语言和导航状态互不影响。
 NAV = [
-    # ★ MVP 主链路入口：A 的简历筛选模块（导入→筛选→风险→面试→评价→对比）
+    # ★ MVP 主链路入口：A 的简历筛选模块（已完成）
     ("screening", "📋 简历筛选"),
-    ("analysis",  "📄 " + _t("nav.analysis")),
-    ("interview", "🤖 " + _t("nav.interview")),
-    ("report",    "📊 " + _t("nav.report")),
-    # ★ Skills 单独成页而不是塞在侧边栏：任务要求 C2 的六个生命周期操作
-    #   （list/insert/activate/compose/delete/hot_reload）都要有入口，
-    #   而交付物明确要求演示视频重点展示"插入/激活/删除"——
-    #   窄侧边栏里塞 YAML 编辑器录出来没法看。
-    ("skills",    "🧩 " + _t("nav.skills")),
+    # ── 基座原有页面（analysis/interview/report/skills）：MVP 阶段隐藏，
+    #    避免 demo 暴露未完成的基座能力；B/C 模块完成后在此追加各自入口 ──
+    # ("analysis",  "📄 " + _t("nav.analysis")),
+    # ("interview", "🤖 " + _t("nav.interview")),
+    # ("report",    "📊 " + _t("nav.report")),
+    # ("skills",    "🧩 " + _t("nav.skills")),
     ("settings",  "⚙️ " + _t("nav.settings")),
 ]
 nav_keys = [k for k, _ in NAV]
 nav_labels = {k: v for k, v in NAV}
 
-_cur = st.session_state.get("active_tab", "analysis")
-if _cur not in nav_keys:                    # 兼容旧的中文标签状态
-    _cur = {"📄 简历分析": "analysis", "🤖 AI 面试": "interview",
-            "📊 评估报告": "report"}.get(_cur, "analysis")
+_cur = st.session_state.get("active_tab", "screening")
+if _cur not in nav_keys:                    # 隐藏基座页后，所有旧标签统一回退到 screening
+    _cur = "screening"
 
 active = st.radio("导航", nav_keys,
     index=nav_keys.index(_cur),
