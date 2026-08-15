@@ -1,0 +1,109 @@
+"""面试例题生成器（移植自「海信动态题库自动化工具」的题库数据）。
+
+思路：原工具是 JS 静态引擎（题库 + 疑点模板 + 评分锚点）。本模块把题库
+`mock/hisense-question-bank.json` 作为 LLM 的风格参考（追问方式 / 5-3-1
+评分锚点 / 红旗信号 / 疑点转题模板），由 LLM 结合【岗位 JD + 候选人简历 +
+匹配疑点】动态生成 6 道结构化面试题，输出契约与原工具 demo-output.json 一致：
+
+  {"questions": [{"pool": "doubt|role|common|closing",
+                  "competency": "...", "question": "...",
+                  "followUps": [...], "anchors": {"5":..., "3":..., "1":...},
+                  "redFlags": [...], "expectedMinutes": 5}]}
+"""
+import json
+import os
+
+from .llm import call_llm
+
+_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_BANK_PATH = os.path.join(_ROOT, "mock", "hisense-question-bank.json")
+
+SYSTEM_INTERVIEW = (
+    "你是资深技术面试官，擅长根据岗位 JD 与候选人简历设计结构化面试题，"
+    "并为每题给出追问、5/3/1 评分锚点与红旗信号。只输出 JSON。"
+)
+
+
+def load_question_bank() -> dict:
+    """加载题库；文件缺失时返回空结构（生成器退化为纯 LLM 出题）。"""
+    if not os.path.exists(_BANK_PATH):
+        return {"questions": [], "doubtTemplates": {}}
+    with open(_BANK_PATH, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _pick_references(bank: dict, max_role: int = 2) -> str:
+    """从题库挑少量样例作为风格参考注入 prompt（控制 prompt 长度）。"""
+    qs = bank.get("questions", [])
+    role = [q for q in qs if q.get("pool") == "role"][:max_role]
+    common = [q for q in qs if q.get("pool") == "common"][:1]
+    refs = []
+    for q in role + common:
+        refs.append(
+            f"- 【{q.get('competency', '')}】{q.get('question', '')}\n"
+            f"  追问示例：{'；'.join(q.get('followUps', [])[:2])}\n"
+            f"  锚点示例：5分={q.get('anchors', {}).get('5', '')[:60]}"
+        )
+    dts = bank.get("doubtTemplates", {})
+    if dts:
+        key = next(iter(dts))
+        dt = dts[key]
+        refs.append(
+            f"- 【疑点转题模板·{dt.get('competency', '')}】{dt.get('question', '')}\n"
+            f"  追问示例：{'；'.join(dt.get('followUps', [])[:2])}"
+        )
+    return "\n".join(refs) or "（无参考题，直接按面试官经验出题）"
+
+
+def generate_interview_questions(job: dict, candidate: dict,
+                                 match: dict, count: int = 6) -> dict:
+    """根据岗位 + 候选人 + 匹配结果生成面试题。
+
+    job:       岗位定义（haixin_jobs.json 的一条）
+    candidate: 候选人记录（含 resume_parsed / resume_text）
+    match:     该岗位的 match_result（summary / matched_points / gap_points）
+    返回 {"questions": [...]}；LLM 失败时抛出异常，由调用方兜底。
+    """
+    bank = load_question_bank()
+    hard = job.get("hard", {})
+    parsed = candidate.get("resume_parsed", {}) or {}
+    gaps = match.get("gap_points", []) or []
+    matched = match.get("matched_points", []) or []
+
+    prompt = f"""请为以下岗位与候选人生成 {count} 道结构化面试题。
+
+【岗位】{job.get('title', '')} · {job.get('dept', '')} · {job.get('level', '')}
+【硬性要求】学历 {hard.get('degree', '不限')} · 年限 ≥{hard.get('min_years', 0)} 年 · 必备技能 {'、'.join(hard.get('must_skills', [])) or '无'}
+【软性要求】{'、'.join(job.get('soft', [])) or '无'}
+【JD 摘要】{(job.get('jd_text', '') or '')[:600]}
+
+【候选人】{candidate.get('name', '')}
+【简历要点】{json.dumps(parsed, ensure_ascii=False)[:1200]}
+【AI 匹配评价】{match.get('summary', '')}
+【匹配点】{'；'.join(matched[:5]) or '无'}
+【疑点 / 差距】{'；'.join(gaps[:5]) or '无'}
+
+【题库风格参考】（学习其追问方式与评分锚点写法，不要照抄题目）
+{_pick_references(bank)}
+
+出题要求：
+1. 共 {count} 题，按面试顺序排列，结构为：疑点核查（doubt，针对上面每个疑点出 1 题，至少 1 题）
+   → 专业技术（role，围绕必备技能与岗位场景，2-3 题）→ 软实力（common，1 题）→ 收尾（closing，动机/期望，1 题）。
+2. 疑点题必须引用简历中的具体说法或缺失点，让候选人解释/举证。
+3. 每题给出：2-3 条追问、5/3/1 三档评分锚点（可观察、可区分）、2-3 条红旗信号、预计分钟数。
+
+严格输出 JSON（不要输出任何其他文字）：
+{{
+  "questions": [
+    {{
+      "pool": "doubt|role|common|closing",
+      "competency": "考察能力点",
+      "question": "题目",
+      "followUps": ["追问1", "追问2"],
+      "anchors": {{"5": "优秀表现", "3": "合格表现", "1": "不合格表现"}},
+      "redFlags": ["红旗1", "红旗2"],
+      "expectedMinutes": 5
+    }}
+  ]
+}}"""
+    return call_llm(prompt, system=SYSTEM_INTERVIEW, expect_json=True)
