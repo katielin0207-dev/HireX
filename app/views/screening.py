@@ -213,13 +213,6 @@ def render_jd_section():
     _init("jd_th_pass", int(th0.get("pass", 80)))
     _init("jd_th_hold", int(th0.get("hold", 60)))
 
-    # ── Step 1 · 基本岗位信息 ─────────────────────────────
-    st.markdown(
-        f"<div style='color:{TOKENS['brand']};font-weight:640;font-size:.95rem;"
-        f"margin:6px 0 4px'>Step 1 · 基本岗位信息</div>",
-        unsafe_allow_html=True,
-    )
-
     r1a, r1b, r1c = st.columns(3)
     with r1a: st.text_input("岗位", key="jd_position",
                             placeholder="例：质量工程师")
@@ -267,14 +260,6 @@ def render_jd_section():
 
     st.divider()
 
-    # ── Step 2 · AI 生成完整 JD ───────────────────────────
-    st.markdown(
-        f"<div style='color:{TOKENS['brand']};font-weight:640;font-size:.95rem;"
-        f"margin:6px 0 4px'>Step 2 · AI 生成完整 JD</div>",
-        unsafe_allow_html=True,
-    )
-    st.caption("填完必备/加分/软实力后，Step 3 底部一键生成完整招聘 JD，结果在 ② 展示可编辑。")
-
     r4a, r4b = st.columns(2)
     with r4a: st.text_input("必备技能（逗号分隔）", key="jd_must",
                             placeholder="例：ISO 9001, 8D, FMEA")
@@ -285,12 +270,6 @@ def render_jd_section():
 
     st.divider()
 
-    # ── Step 3 · 确认筛选规则 ─────────────────────────────
-    st.markdown(
-        f"<div style='color:{TOKENS['brand']};font-weight:640;font-size:.95rem;"
-        f"margin:6px 0 4px'>Step 3 · 确认筛选规则</div>",
-        unsafe_allow_html=True,
-    )
     st.caption("锁定评分标准，确保不同 HR 用同一把尺。")
 
     st.markdown("**四维权重**（前三项为硬性、最后一项为软性）")
