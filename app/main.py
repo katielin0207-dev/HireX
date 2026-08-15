@@ -15,6 +15,7 @@ import streamlit as st
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.ui.theme import inject_theme
+from app.config import settings
 
 
 st.set_page_config(
@@ -76,15 +77,16 @@ if pending_navigation in PAGE_LABELS:
 if st.session_state.get("hirex_navigation") not in PAGE_LABELS:
     st.session_state["hirex_navigation"] = "screening"
 
+ai_status = "真实 AI 已配置" if settings.is_configured else "本地演示模式"
 st.markdown(
-    """
+    f"""
     <div class="top-shell">
       <div class="top-brand">
         <span class="brand-mark">HX</span>
         <div><strong>HireX · 海信—招聘甄选智能体</strong><small>岗位千万条，匹配第一条。</small></div>
       </div>
       <div class="top-actions">
-        <span class="mock-dot"></span><span>演示数据已连接</span>
+        <span class="mock-dot"></span><span>{ai_status}</span>
         <b>AI管理后台</b>
       </div>
     </div>

@@ -66,6 +66,17 @@ HireX 不是简单的聊天框，而是“规则引擎 + 大模型 + 证据链 +
 
 ## 本地启动
 
+### 最快启动方式
+
+```bash
+git clone https://github.com/katielin0207-dev/HireX.git
+cd HireX
+cp .env.example .env     # 填入团队私发的 DeepSeek API Key；暂时不填也能运行演示模式
+./dev.sh                 # 一键启动（首次自动创建虚拟环境并安装依赖）
+```
+
+启动完成后访问：<http://127.0.0.1:8501>
+
 ### 1. 克隆项目
 
 ```bash
@@ -73,7 +84,7 @@ git clone https://github.com/katielin0207-dev/HireX.git
 cd HireX
 ```
 
-### 2. 配置模型
+### 2. 配置模型（可选）
 
 ```bash
 cp .env.example .env
@@ -83,13 +94,27 @@ cp .env.example .env
 
 ```env
 LLM_API_KEY=你的-DeepSeek-API-Key
-LLM_BASE_URL=https://api.deepseek.com/v1
-LLM_MODEL=deepseek-chat
+LLM_BASE_URL=https://api.deepseek.com
+LLM_MODEL=deepseek-v4-flash
 ```
+
+不填写 Key 也能直接运行，系统会自动使用本地演示数据和可解释规则；填写有效 Key 后自动启用真实 AI。
 
 请勿将真实 API Key 提交到 GitHub。
 
-### 3. 启动
+### 3. 部署成所有人可访问的真实 AI 网页
+
+在 Streamlit Community Cloud 创建应用后，进入应用的 **Settings → Secrets**，填写：
+
+```toml
+LLM_API_KEY = "你的-DeepSeek-API-Key"
+LLM_BASE_URL = "https://api.deepseek.com"
+LLM_MODEL = "deepseek-v4-flash"
+```
+
+保存并重新启动应用。访问网页的人无需知道或填写 Key，所有真实模型请求都由部署端统一发出。
+
+### 4. 启动
 
 ```bash
 ./dev.sh

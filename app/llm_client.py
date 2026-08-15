@@ -27,6 +27,11 @@ class JSONParseError(LLMError):
     pass
 
 
+class LLMAuthError(LLMError):
+    """API Key 无效、过期或无权限。此类错误不应重试。"""
+    pass
+
+
 class LLMClient:
     """OpenAI 兼容 API 的 LLM 客户端"""
 
@@ -163,9 +168,9 @@ class LLMClient:
             expect_json=True 时返回解析后的 dict/list
             expect_json=False 时返回原始字符串
         """
-        if not self.api_key:
+        if not settings.is_configured:
             raise LLMError(
-                "LLM API Key 未配置。请复制 .env.example 为 .env 并填入你的 API Key。"
+                "未配置有效的 LLM API Key，当前应使用本地演示模式。"
             )
 
         retries = max_retries if max_retries is not None else settings.MAX_RETRIES
@@ -196,6 +201,9 @@ class LLMClient:
                 if attempt < retries:
                     time.sleep(1 * attempt)
                 continue
+
+            except LLMAuthError:
+                raise
 
             except (httpx.TimeoutException, httpx.HTTPStatusError) as e:
                 last_error = LLMError(f"API 请求失败 (尝试 {attempt}/{retries}): {str(e)}")
@@ -232,6 +240,8 @@ class LLMClient:
 
         resp = self.client.post(url, json=payload, headers=headers)
 
+        if resp.status_code in (401, 403):
+            raise LLMAuthError("API Key 无效、已过期或没有模型访问权限，请检查本机 .env。")
         if resp.status_code == 429:
             raise httpx.HTTPStatusError("API 限流，请稍后重试", request=resp.request, response=resp)
         if resp.status_code != 200:

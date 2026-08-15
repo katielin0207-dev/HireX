@@ -72,7 +72,20 @@ def soft_score(job: dict, parsed: dict) -> dict:
   "gap_points": ["软性差距点1"],
   "summary": "一句话总结软性匹配情况"
 }}"""
-    return call_llm(prompt, system=SYSTEM_SOFT, expect_json=True)
+    try:
+        return call_llm(prompt, system=SYSTEM_SOFT, expect_json=True)
+    except Exception:
+        # 本地可解释兜底：不伪装成模型结论，仅依据简历中可见词汇估算。
+        haystack = str(parsed.get("experience", [])) + " " + str(parsed.get("skills", []))
+        matched = [item for item in soft_req if item and item.lower() in haystack.lower()]
+        missing = [item for item in soft_req if item not in matched]
+        score = 75 if not soft_req else int(55 + 40 * len(matched) / len(soft_req))
+        return {
+            "soft_score": min(95, score),
+            "matched_points": [f"简历中可见：{item}" for item in matched] or ["具备基础岗位适应能力"],
+            "gap_points": [f"建议面试核验：{item}" for item in missing],
+            "summary": "本地规则初评；软性素质需结合结构化面试进一步确认。",
+        }
 
 
 # ────────────────────────────────────────────────────────────

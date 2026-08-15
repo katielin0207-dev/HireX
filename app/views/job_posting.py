@@ -3,9 +3,13 @@
 负责：岗位任职要求的录入 / AI 拆解已有 JD / 生成最终 JD 描述。
        生成的 JD 与筛选规则通过 app.shared.store 持久化，供简历筛选页读取使用。
 """
+import re
+
 import streamlit as st
 
+from app.config import settings
 from app.shared import call_llm, save_jd, load_jd
+from app.shared.demo_cache import demo_mode_enabled
 from app.shared.job_utils import (
     _split_csv,
     _legacy_weights,
@@ -32,8 +36,67 @@ _MOCK_BASICS = {
 }
 
 
+def _local_parse_jd(raw_text: str) -> dict:
+    """无模型时用可解释规则提取常见 JD 字段。"""
+    text = raw_text.strip()
+    degree = next((d for d in ("博士", "硕士", "本科", "大专") if d in text), "不限")
+    year_match = re.search(r"(\d+)\s*年(?:以上|及以上|经验)", text)
+    min_years = int(year_match.group(1)) if year_match else 0
+    known_skills = (
+        "ISO 9001", "8D", "FMEA", "SPC", "APQP", "六西格玛", "Python",
+        "Java", "SQL", "Excel", "供应商质量", "质量体系", "数据分析",
+    )
+    must = [skill for skill in known_skills if skill.lower() in text.lower()]
+    soft_words = ("沟通协作", "跨部门沟通", "问题分析", "抗压能力", "团队协作", "学习能力")
+    soft = [word for word in soft_words if word in text]
+    title_match = re.search(r"(?:招聘|岗位[:：]?|职位[:：]?)\s*([^，。\n]{2,20})", text)
+    title = title_match.group(1).strip() if title_match else "待确认岗位"
+    return {
+        "title": title,
+        "hard": {
+            "degree": degree,
+            "min_years": min_years,
+            "must_skills": must,
+            "nice_skills": [],
+        },
+        "soft": soft,
+    }
+
+
+def _local_jd_text(structured: dict, basics: dict = None) -> str:
+    """根据已确认字段生成稳定、可编辑的五段 JD。"""
+    basics = basics or {}
+    hard = structured.get("hard", {}) or {}
+    soft = structured.get("soft", []) or []
+    title = basics.get("position") or structured.get("title") or "招聘岗位"
+    base_req = basics.get("base_requirements") or "负责岗位相关业务推进与结果交付。"
+    must = hard.get("must_skills", []) or []
+    nice = hard.get("nice_skills", []) or []
+    return f"""# {title}
+
+## 岗位职责
+- {base_req}
+- 协同相关部门推进重点任务，跟踪问题闭环并沉淀工作方法。
+- 按业务目标完成数据分析、过程复盘与结果汇报。
+
+## 学历与经验要求
+- {hard.get('degree') or '学历不限'}，{int(hard.get('min_years', 0) or 0)} 年及以上相关工作经验。
+- 有相关行业或同类岗位项目经验者优先。
+
+## 必备技能
+{chr(10).join(f'- {item}' for item in must) if must else '- 具备岗位所需的基础专业能力。'}
+
+## 加分技能
+{chr(10).join(f'- {item}' for item in nice) if nice else '- 无。'}
+
+## 软实力要求
+{chr(10).join(f'- {item}' for item in soft) if soft else '- 具备良好的沟通协作、学习与问题解决能力。'}"""
+
+
 def parse_jd(raw_text: str) -> dict:
     """把 JD 原文解析为结构化任职要求。"""
+    if demo_mode_enabled() or not settings.is_configured:
+        return _local_parse_jd(raw_text)
     prompt = f"""请解析以下岗位 JD，输出结构化 JSON：
 {raw_text}
 
@@ -55,6 +118,8 @@ def generate_jd_text(structured: dict, basics: dict = None) -> str:
     """结构化任职要求 + 基本岗位信息 → 一段自然语言中文招聘 JD 文案。
     严格输出五段：岗位职责 / 学历经验 / 必备技能 / 加分技能 / 软实力。"""
     basics = basics or {}
+    if demo_mode_enabled() or not settings.is_configured:
+        return _local_jd_text(structured, basics)
     title = basics.get("position") or structured.get("title", "岗位")
     h = structured.get("hard", {})
     soft = structured.get("soft", [])
@@ -191,12 +256,12 @@ def render():
                 st.warning("请先粘贴 JD 原文")
             else:
                 with st.status("解析 JD 中...", expanded=True) as s:
-                    s.write("调用 LLM 拆解任职要求...")
+                    s.write("正在拆解任职要求...")
                     try:
                         r = parse_jd(st.session_state["jd_raw"])
-                    except Exception as e:
-                        s.update(label=f"解析失败：{e}", state="error")
-                        r = None
+                    except Exception:
+                        r = _local_parse_jd(st.session_state["jd_raw"])
+                        s.write("模型暂不可用，已切换为本地规则拆解。")
                     if r:
                         hd = r.get("hard", {})
                         st.session_state["_jd_form_seed"] = {
@@ -211,7 +276,7 @@ def render():
                         st.rerun()
 
     # ── 生成 JD ─────────────────────────────────────────────
-    section("生成招聘 JD 描述", "调 LLM 把上面结构化信息扩写为 5 段文案")
+    section("生成招聘 JD 描述", "AI 优先生成；未配置模型时自动使用本地模板")
     if st.button("📝 生成JD描述", type="primary", key="gen_jd_final"):
         basics = {
             "position": st.session_state["jd_position"].strip(),
@@ -232,13 +297,13 @@ def render():
             "soft": _split_csv(st.session_state["jd_soft"]),
         }
         with st.status("生成 JD 描述中...", expanded=True) as s:
-            s.write("调用 LLM 把结构化要求扩写为五段招聘文案...")
+            s.write("正在把结构化要求扩写为五段招聘文案...")
             try:
                 jd_text = generate_jd_text(req, basics)
                 s.update(label="JD 描述已生成", state="complete")
-            except Exception as e:
-                jd_text = f"> ⚠ LLM 生成失败：{e}\n>\n> 请手动补写 JD 文案。"
-                s.update(label="LLM 生成失败", state="error")
+            except Exception:
+                jd_text = _local_jd_text(req, basics)
+                s.update(label="已使用本地模板生成，可继续编辑", state="complete")
 
         save_jd({
             "title": req["title"],

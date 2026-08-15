@@ -15,8 +15,8 @@ fi
 
 # 检查 .env
 if [ ! -f ".env" ]; then
-    echo "错误: .env 不存在。请复制 .env.example 并填入 LLM_API_KEY"
-    exit 1
+    cp .env.example .env
+    echo "已创建本机 .env；未填 Key 时自动使用本地演示模式。"
 fi
 
 # 检查 Mock 数据
@@ -30,9 +30,11 @@ if [ ! -f "sessions/jd.json" ] || [ -z "$(ls sessions/candidates/*.json 2>/dev/n
 fi
 
 # 演示模式
-if [ "$1" = "demo" ]; then
+if [ "$1" = "demo" ] || ! .venv/bin/python -c "from app.config import settings; raise SystemExit(0 if settings.is_configured else 1)"; then
     echo "=== 演示模式（读缓存，不调 API）==="
     export DEMO_MODE=on
+else
+    echo "=== 真实 AI 模式：模型配置已读取 ==="
 fi
 
 echo "启动中... http://127.0.0.1:8501"

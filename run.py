@@ -2,56 +2,34 @@
 """HireX 招聘甄选 AI 智能体一键启动。
 
 Usage:
-  1. Copy .env.example to .env and fill in your LLM_API_KEY
-  2. pip install -r requirements.txt
-  3. python run.py
-  4. Open http://127.0.0.1:8501 in browser
+  1. pip install -r requirements.txt
+  2. python run.py
+  3. Open http://127.0.0.1:8501 in browser
 
-主流程：简历筛选 → 风险核验 → 面试辅助 → 人才评价
+主流程：简历筛选（含岗位 JD 与面试辅助）→ 人才评价 → 录用前风险核验
 """
 import sys
 import os
 import subprocess
+import shutil
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 
 def main():
-    # Check .env
     if not os.path.exists(".env"):
-        print("=" * 60)
-        print("  .env file not found!")
-        print("=" * 60)
-        print()
-        print("Please:")
-        print("  1. Copy .env.example to .env")
-        print("  2. Fill in your LLM_API_KEY")
-        print()
-        print("Supported providers:")
-        print("  DeepSeek: LLM_BASE_URL=https://api.deepseek.com/v1")
-        print("            LLM_MODEL=deepseek-chat")
-        print("  Qwen:     LLM_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1")
-        print("            LLM_MODEL=qwen-plus")
-        print("  OpenAI:   LLM_BASE_URL=https://api.openai.com/v1")
-        print("            LLM_MODEL=gpt-4o")
-        print("  Kimi:     LLM_BASE_URL=https://api.moonshot.cn/v1")
-        print("            LLM_MODEL=moonshot-v1-8k")
-        print()
-        sys.exit(1)
+        shutil.copyfile(".env.example", ".env")
+        print("  已创建 .env；未填 Key 时使用本地演示模式。")
 
     from app.config import settings
     if not settings.is_configured:
-        print("=" * 60)
-        print("  LLM_API_KEY not configured!")
-        print("=" * 60)
-        print("  Please edit .env and set LLM_API_KEY")
-        print()
-        sys.exit(1)
+        os.environ["DEMO_MODE"] = "on"
 
     print("=" * 60)
     print("  HireX 招聘甄选 AI 智能体")
     print("=" * 60)
-    print(f"  Model: {settings.LLM_MODEL}")
+    print(f"  Mode:  {'真实 AI' if settings.is_configured else '本地演示'}")
+    print(f"  Model: {settings.LLM_MODEL if settings.is_configured else '无需模型'}")
     print(f"  URL:   http://{settings.HOST}:{settings.PORT}")
     print("=" * 60)
     print()

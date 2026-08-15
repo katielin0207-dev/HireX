@@ -62,7 +62,7 @@ def generate_interview_questions(job: dict, candidate: dict,
     job:       岗位定义（haixin_jobs.json 的一条）
     candidate: 候选人记录（含 resume_parsed / resume_text）
     match:     该岗位的 match_result（summary / matched_points / gap_points）
-    返回 {"questions": [...]}；LLM 失败时抛出异常，由调用方兜底。
+    返回 {"questions": [...]}；LLM 不可用时自动使用岗位与疑点模板。
     """
     bank = load_question_bank()
     hard = job.get("hard", {})
@@ -106,4 +106,34 @@ def generate_interview_questions(job: dict, candidate: dict,
     }}
   ]
 }}"""
-    return call_llm(prompt, system=SYSTEM_INTERVIEW, expect_json=True)
+    try:
+        return call_llm(prompt, system=SYSTEM_INTERVIEW, expect_json=True)
+    except Exception:
+        skills = hard.get("must_skills", []) or ["岗位核心技能"]
+        templates = []
+        for gap in (gaps or ["简历中的关键经历缺少量化结果"]):
+            templates.append(("doubt", "经历核验", f"请结合具体项目说明“{gap}”这一点，并提供可核验的过程与结果。"))
+        for skill in skills:
+            templates.append(("role", "专业能力", f"请介绍一次你实际运用 {skill} 解决业务问题的案例，你承担了什么责任？"))
+        templates.extend([
+            ("common", "协作与推动", "请举例说明一次跨部门意见不一致时，你如何推动问题闭环。"),
+            ("closing", "求职动机", f"你为什么选择应聘{job.get('title', '该岗位')}，入职后三个月希望完成什么？"),
+        ])
+        questions = []
+        for pool, competency, question in templates[:count]:
+            questions.append({
+                "pool": pool,
+                "competency": competency,
+                "question": question,
+                "followUps": ["请说明当时的目标、个人动作和量化结果。", "如果重新处理，你会调整什么？"],
+                "anchors": {
+                    "5": "案例真实完整，个人贡献清晰，结果可量化并能复盘。",
+                    "3": "有相关案例，过程基本清楚，但结果或个人贡献不够具体。",
+                    "1": "无法提供实例，回答前后矛盾或明显回避关键细节。",
+                },
+                "redFlags": ["只描述团队成果，无法说明个人贡献", "无法提供时间、数据或具体产出"],
+                "expectedMinutes": 5,
+            })
+        while len(questions) < count:
+            questions.append(dict(questions[-1]))
+        return {"questions": questions}

@@ -125,9 +125,9 @@ JSON 格式：
             max_retries=2,
         )
         return _normalize_eval(result, candidate, notes)
-    except Exception as exc:  # noqa: BLE001
+    except Exception:  # noqa: BLE001
         fallback = _fallback_eval(candidate, notes)
-        fallback["concerns"].append(f"AI 评价补充暂未完成：{str(exc)[:80]}")
+        fallback["concerns"].append("模型暂不可用，本次评价已使用本地规则生成，建议面试官复核。")
         return fallback
 
 
