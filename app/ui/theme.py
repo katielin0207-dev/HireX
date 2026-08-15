@@ -357,10 +357,10 @@ a { color: var(--brand); }
 }
 .top-brand { display:flex;align-items:center;gap:13px; }
 .top-brand .brand-mark {
-    width: 40px; height: 40px; border-radius: 11px;
+    width: 48px; height: 48px; border-radius: 13px;
     background: var(--brand); color: #fff;
     display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 800; letter-spacing: .04em;
+    font-size: 14px; font-weight: 800; letter-spacing: .04em;
 }
 .top-brand strong { display:block;color:var(--text);font-size:24px;line-height:1.18;letter-spacing:-.025em; }
 .top-brand small { display:block;color:var(--text-3);font-size:11px;margin-top:4px; }
