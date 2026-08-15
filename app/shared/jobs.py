@@ -10,6 +10,8 @@ import json
 import os
 from typing import Optional
 
+from .store import load_jd
+
 _ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 _MOCK_JOBS_PATH = os.path.join(_ROOT, "mock", "haixin_jobs.json")
 
@@ -23,16 +25,64 @@ JOB_CATEGORIES = [
 ]
 
 
+def _published_job() -> Optional[dict]:
+    """把岗位投放页发布的 JD 转成筛选模块通用的岗位结构。"""
+    jd = load_jd() or {}
+    req = jd.get("requirements") or {}
+    hard = req.get("hard") or {}
+    basics = jd.get("basics") or {}
+    title = basics.get("position") or req.get("title") or jd.get("title")
+    if not title or not hard:
+        return None
+
+    signal = " ".join([
+        str(title),
+        str(basics.get("dept", "")),
+        " ".join(hard.get("must_skills") or []),
+    ]).lower()
+    if any(x in signal for x in ("质量", "ie", "8d", "spc", "fmea")):
+        category = "质量/IE 方向"
+    elif any(x in signal for x in ("制造", "工艺", "生产", "smt")):
+        category = "制造/工艺岗"
+    elif any(x in signal for x in ("工程师", "开发", "算法", "技术", "python")):
+        category = "工程师/技术岗"
+    else:
+        category = "职能/非技术岗"
+
+    return {
+        "id": "published_jd",
+        "category": category,
+        "title": title,
+        "dept": basics.get("dept", ""),
+        "location": basics.get("location", ""),
+        "level": basics.get("level", ""),
+        "count": int(basics.get("count", 1) or 1),
+        "source_url": "北森岗位需求（演示）",
+        "hard": hard,
+        "soft": req.get("soft") or [],
+        "recommended_weights": jd.get("weights") or {
+            "degree": 0.15, "years": 0.20, "skills": 0.40, "soft": 0.25,
+        },
+        "recommended_thresholds": jd.get("thresholds") or {"pass": 80, "hold": 60},
+        "jd_text": jd.get("jd_text_generated") or jd.get("raw_text") or "",
+        "published": True,
+    }
+
+
 def load_jobs() -> list[dict]:
     """加载岗位列表。
 
     TODO(爬虫对接): 替换为 fetch_from_hisense_career_site()，
                     保持返回 dict 结构与 mock 一致即可无缝切换。
     """
-    if not os.path.exists(_MOCK_JOBS_PATH):
-        return []
-    with open(_MOCK_JOBS_PATH, encoding="utf-8") as f:
-        return json.load(f)
+    jobs = []
+    if os.path.exists(_MOCK_JOBS_PATH):
+        with open(_MOCK_JOBS_PATH, encoding="utf-8") as f:
+            jobs = json.load(f)
+    published = _published_job()
+    if published:
+        jobs = [published] + [job for job in jobs if job.get("id") != published["id"]]
+    return jobs
 
 
 def load_job(job_id: str) -> Optional[dict]:

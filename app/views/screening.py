@@ -191,6 +191,10 @@ def run_screening(job: dict, weights: dict, thresholds: dict) -> int:
         match_data["screen_note"] = prev.get("screen_note", "")
         mj[job_id] = match_data
         cand["matched_jobs"] = mj
+        # 四个模块的共同数据契约：当前岗位结果同步到标准字段，
+        # 供风险、面试和人才评价直接读取。
+        cand["match_result"] = match_data
+        cand["current_job_id"] = job_id
         save_candidate(cand)
 
     return len(candidates)
@@ -574,8 +578,7 @@ def _render_candidate_card(c: dict, job: dict,
                         cand["tags"] = list(dict.fromkeys((cand.get("tags") or []) + ["待生成面试评价"]))
                         save_candidate(cand)
                         st.session_state["selected_candidate_id"] = c["id"]
-                        st.session_state["active_tab"] = "interview_eval"
-                        st.session_state["_nav_radio"] = "interview_eval"
+                        st.session_state["_hirex_pending_screening_stage"] = "面试辅助"
                         st.rerun()
                 with interview_col:
                     if st.button("进入 AI 面试", key=f"sync_interview_{c['id']}", use_container_width=True):
@@ -585,8 +588,7 @@ def _render_candidate_card(c: dict, job: dict,
                         save_candidate(cand)
                         st.session_state["selected_candidate_id"] = c["id"]
                         st.session_state["risk_selected_candidate"] = c["id"]
-                        st.session_state["active_tab"] = "interview_eval"
-                        st.session_state["_nav_radio"] = "interview_eval"
+                        st.session_state["_hirex_pending_screening_stage"] = "面试辅助"
                         st.rerun()
 
 

@@ -1,8 +1,7 @@
 """HireX 招聘甄选 AI 智能体统一入口。
 
-比赛 MVP 只保留四条业务主链路：
-简历筛选 → 风险核验 → 面试辅助 → 人才评价。
-风险与面试模块尚未合并时显示清晰占位，文件到位后自动接入。
+比赛 MVP 按企业使用顺序保留三段主链路：
+简历筛选（含 JD 与面试辅助）→ 人才评价 → 录用前风险核验。
 """
 
 from __future__ import annotations
@@ -28,10 +27,9 @@ inject_theme()
 
 
 PAGES = [
-    ("screening", "简历筛选", "app.views.screening"),
-    ("risk", "风险核验", "app.views.risk"),
-    ("interview", "面试辅助", "app.views.interview_eval"),
+    ("screening", "简历筛选", "app.views.screening_flow"),
     ("talent", "人才评价", "app.views.talent"),
+    ("risk", "风险核验", "app.views.risk_flow"),
 ]
 PAGE_LABELS = {key: label for key, label, _ in PAGES}
 
@@ -72,6 +70,9 @@ def _render_page(page_key: str) -> None:
     render()
 
 
+pending_navigation = st.session_state.pop("_hirex_pending_navigation", None)
+if pending_navigation in PAGE_LABELS:
+    st.session_state["hirex_navigation"] = pending_navigation
 if st.session_state.get("hirex_navigation") not in PAGE_LABELS:
     st.session_state["hirex_navigation"] = "screening"
 

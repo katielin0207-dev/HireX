@@ -285,5 +285,11 @@ def render():
             if st.button("💾 发布JD", key="save_jd_text"):
                 jd["jd_text_generated"] = edited
                 save_jd(jd)
-                st.success("已发布 JD")
+                st.session_state["current_job_id"] = "published_jd"
+                st.success("已发布 JD，并设为当前筛选岗位")
+                st.rerun()
+
+            if st.button("进入简历筛选 →", type="primary", key="go_screening_after_jd"):
+                st.session_state["current_job_id"] = "published_jd"
+                st.session_state["_hirex_pending_screening_stage"] = "简历筛选"
                 st.rerun()

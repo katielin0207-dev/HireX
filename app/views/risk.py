@@ -199,8 +199,8 @@ def _render_batch_table(rows: list[dict], candidates: list[dict], jd: dict) -> N
                     st.session_state["selected_candidate_id"] = cid
                     st.session_state["risk_selected_candidate"] = cid
                     update_candidate(cid, "status", "interview_pack_ready")
-                    st.session_state["active_tab"] = "interview_eval"
-                    st.session_state["_nav_radio"] = "interview_eval"
+                    st.session_state["_hirex_pending_navigation"] = "screening"
+                    st.session_state["_hirex_pending_screening_stage"] = "面试辅助"
                     st.rerun()
 
 
@@ -373,8 +373,8 @@ def _render_command_bar(candidate: dict, jd: dict, selected_id: str) -> None:
             st.session_state["selected_candidate_id"] = selected_id
             st.session_state["risk_selected_candidate"] = selected_id
             update_candidate(selected_id, "status", "interview_pack_ready")
-            st.session_state["active_tab"] = "interview_eval"
-            st.session_state["_nav_radio"] = "interview_eval"
+            st.session_state["_hirex_pending_navigation"] = "screening"
+            st.session_state["_hirex_pending_screening_stage"] = "面试辅助"
             st.rerun()
     with col_d:
         st.caption("HR 使用建议：先看顶部结论，再处理右侧核验清单。证据明细只在需要复核时展开。")
@@ -394,8 +394,8 @@ def _render_command_bar(candidate: dict, jd: dict, selected_id: str) -> None:
         if st.button("生成面试包", use_container_width=True):
             update_candidate(selected_id, "status", "interview_pack_ready")
             st.session_state["selected_candidate_id"] = selected_id
-            st.session_state["active_tab"] = "interview_eval"
-            st.session_state["_nav_radio"] = "interview_eval"
+            st.session_state["_hirex_pending_navigation"] = "screening"
+            st.session_state["_hirex_pending_screening_stage"] = "面试辅助"
             st.rerun()
     with action_d:
         if st.button("暂不推进", use_container_width=True):

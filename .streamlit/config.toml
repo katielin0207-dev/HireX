@@ -31,10 +31,10 @@
 
 [theme]
 base = "light"
-primaryColor = "#4f46e5"
-backgroundColor = "#ffffff"           # 对齐 CSS token 的 --bg
-secondaryBackgroundColor = "#f8fafc"  # 对齐 --surface
-textColor = "#0f172a"                 # 对齐 --text
+primaryColor = "#009b91"
+backgroundColor = "#f7f9f9"           # 海信青绿工作台背景
+secondaryBackgroundColor = "#f5f8f8"  # 卡片与输入区浅底
+textColor = "#173e58"                 # 深海军蓝正文
 font = "sans serif"
 
 [server]

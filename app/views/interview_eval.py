@@ -162,7 +162,7 @@ def _render_eval(result: dict | None, selected_id: str) -> None:
         if st.button("推送人才评价", use_container_width=True):
             if selected_id:
                 update_candidate(selected_id, "status", "decision_pending")
-                st.success("已推送到人才评价/候选人对比")
+                st.session_state["_hirex_pending_navigation"] = "talent"
                 st.rerun()
 
 

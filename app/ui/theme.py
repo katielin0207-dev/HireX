@@ -47,10 +47,10 @@ TOKENS = {
 
 # 面试题五个维度的配色，题卡与统计图共用一套
 DIMENSION_COLORS = {
-    "技术基础":   "#4f46e5",
+    "技术基础":   "#173e58",
     "项目深挖":   "#059669",
     "场景设计":   "#d97706",
-    "行为面试":   "#db2777",
+    "行为面试":   "#0284c7",
     "模糊点追问": "#167f83",
 }
 
@@ -330,7 +330,7 @@ a { color: var(--brand); }
 }
 [data-testid="stFileUploader"]:hover { border-color: var(--brand); }
 
-/* 选中标签使用品牌紫色时，强制保持白字，避免被全局文字色覆盖。 */
+/* 选中标签使用品牌青绿色时，强制保持白字，避免被全局文字色覆盖。 */
 [data-testid="stMultiSelect"] [data-baseweb="tag"],
 [data-testid="stMultiSelect"] [data-baseweb="tag"] span {
     color: #fff !important;
@@ -399,6 +399,28 @@ div[data-testid="stRadio"]:has([data-testid="stRadioGroup"][aria-label="主流�
 div[data-testid="stRadio"]:has([data-testid="stRadioGroup"][aria-label="主流程"]) [data-testid="stRadioOption"][data-selected="true"] * { color:#fff!important; }
 /* 隐藏原生圆点，只留文字 */
 div[data-testid="stRadio"]:has([data-testid="stRadioGroup"][aria-label="主流程"]) [data-testid="stRadioOption"] > div > div > div:first-child { display:none!important; }
+
+/* 模块一内部流程：覆盖 Streamlit 分段控件的默认紫色。 */
+.st-key-screening_stage [role="radiogroup"],
+.st-key-risk_stage [role="radiogroup"] {
+    border-color:var(--border-2)!important;
+    background:var(--surface-2)!important;
+}
+.st-key-screening_stage button[data-variant="segmented_control"],
+.st-key-risk_stage button[data-variant="segmented_control"] {
+    border-color:transparent!important;
+    color:var(--text-2)!important;
+    box-shadow:none!important;
+}
+.st-key-screening_stage button[data-variant="segmented_control"][data-selected="true"],
+.st-key-risk_stage button[data-variant="segmented_control"][data-selected="true"] {
+    background:var(--brand)!important;
+    border-color:var(--brand)!important;
+}
+.st-key-screening_stage button[data-variant="segmented_control"][data-selected="true"] *,
+.st-key-risk_stage button[data-variant="segmented_control"][data-selected="true"] * {
+    color:#fff!important;
+}
 
 /* 每个模块只有一张主工作区卡片，岗位筛选、页签和业务内容都收进来。 */
 [class*="st-key-hirex_workspace_"] {
