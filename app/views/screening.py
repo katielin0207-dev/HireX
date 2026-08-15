@@ -270,9 +270,7 @@ def render_jd_section():
 
     st.divider()
 
-    st.caption("锁定评分标准，确保不同 HR 用同一把尺。")
-
-    st.markdown("**四维权重**（前三项为硬性、最后一项为软性）")
+    st.markdown("**四维权重**")
     for label, dim in [("学历", "degree"), ("年限", "years"),
                        ("必备技能", "skills"), ("软实力", "soft")]:
         cL, cR = st.columns([1, 5])
@@ -286,21 +284,6 @@ def render_jd_section():
                       label_visibility="collapsed")
 
     total_pct = sum(st.session_state.get(f"jd_w_{d}", 0) for d in _WEIGHT_DIMS)
-    if total_pct == 100:
-        st.markdown(
-            f"<div style='color:{TOKENS['success']};font-size:.85rem'>"
-            f"权重合计：{total_pct}% ✅</div>",
-            unsafe_allow_html=True)
-    elif total_pct == 0:
-        st.markdown(
-            f"<div style='color:{TOKENS['danger']};font-size:.85rem'>"
-            f"权重合计：0% — 请至少给一个维度分配权重</div>",
-            unsafe_allow_html=True)
-    else:
-        st.markdown(
-            f"<div style='color:{TOKENS['warning']};font-size:.85rem'>"
-            f"权重合计：{total_pct}%（筛选时会自动归一化到 100%）</div>",
-            unsafe_allow_html=True)
 
     st.markdown("**推荐 / 待定 / 不推进 分数线**")
     r5a, r5b = st.columns(2)
