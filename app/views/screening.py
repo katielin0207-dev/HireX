@@ -24,7 +24,9 @@ from app.shared.job_utils import (
     _WEIGHT_DIMS,
     _DIM_LABEL,
     _DEGREE_LEVEL,
-    _normalize_weights,
+    weight_template_for,
+    weight_deviation_hint,
+    validate_weight_total,
 )
 from app.shared.jobs import (
     load_job, jobs_in_category, JOB_CATEGORIES,
@@ -313,35 +315,87 @@ def _render_job_header(job: dict) -> None:
 
 
 def _render_weights_and_thresholds(job: dict):
-    """展示可交互权重/阈值滑块，返回 (weights_normalized, thresholds)。"""
+    """展示岗位引导式权重配置，返回 (weights, thresholds, config_valid)。"""
     job_id = job["id"]
-    default_w = job.get("recommended_weights") or {
-        "degree": 0.25, "years": 0.15, "skills": 0.35, "soft": 0.25}
+    template = weight_template_for(job)
+    default_pct = template["defaults"]
     default_th = job.get("recommended_thresholds") or {"pass": 80, "hold": 60}
 
     for d in _WEIGHT_DIMS:
         key = f"screen_w_{job_id}_{d}"
         if key not in st.session_state:
-            st.session_state[key] = int(round(default_w.get(d, 0.25) * 100))
+            st.session_state[key] = default_pct[d]
     for th, defv in [("pass", 80), ("hold", 60)]:
         key = f"screen_th_{th}_{job_id}"
         if key not in st.session_state:
             st.session_state[key] = int(default_th.get(th, defv))
 
-    default_summary = " · ".join(
-        f"{_DIM_LABEL[d]} {int(default_w.get(d, 0) * 100)}%" for d in _WEIGHT_DIMS)
-    section("⚖️ 四维权重", f"岗位推荐：{default_summary}（HR 可覆盖）")
-    for label, dim in [("学历", "degree"), ("年限", "years"),
-                       ("必备技能", "skills"), ("软实力", "soft")]:
-        cL, cR = st.columns([1, 5])
-        cL.markdown(
-            f"<div style='padding-top:12px;color:{TOKENS['text-2']};font-size:.9rem'>"
-            f"{label}</div>",
+    section("⚖️ 岗位评分权重", "在岗位默认模板下微调；系统实时解释偏离影响")
+    head_l, head_r = st.columns([5, 1.2])
+    with head_l:
+        st.markdown(
+            f"<div style='background:{TOKENS['brand-50']};border:1px solid {TOKENS['brand-100']};"
+            f"border-radius:12px;padding:12px 16px;margin-bottom:8px'>"
+            f"<div style='font-weight:650;color:{TOKENS['text']}'>已加载：{template['name']}</div>"
+            f"<div style='font-size:.82rem;color:{TOKENS['text-2']};margin-top:3px'>"
+            f"以下是岗位通用初始值。HR 可以微调，偏离建议区间时系统会说明影响。</div></div>",
             unsafe_allow_html=True,
         )
+    with head_r:
+        if st.button("恢复岗位默认值", key=f"reset_weights_{job_id}", use_container_width=True):
+            for dim in _WEIGHT_DIMS:
+                st.session_state[f"screen_w_{job_id}_{dim}"] = default_pct[dim]
+            st.rerun()
+
+    for dim in _WEIGHT_DIMS:
+        value = int(st.session_state[f"screen_w_{job_id}_{dim}"])
+        low, high = template["ranges"][dim]
+        hint, hint_level = weight_deviation_hint(dim, value, (low, high))
+        hint_color = TOKENS["success"] if hint_level == "ok" else TOKENS["warning"]
+        cL, cR = st.columns([1.65, 5])
+        with cL:
+            st.markdown(
+                f"<div style='padding-top:6px'>"
+                f"<div style='font-weight:620;color:{TOKENS['text']}'>{_DIM_LABEL[dim]}</div>"
+                f"<span style='display:inline-block;margin-top:5px;padding:2px 8px;border-radius:999px;"
+                f"background:{TOKENS['brand-50']};color:{TOKENS['brand']};font-size:.72rem'>"
+                f"{template['tags'][dim]}</span>"
+                f"<div style='margin-top:5px;color:{TOKENS['text-3']};font-size:.72rem'>"
+                f"默认 {default_pct[dim]}% · 建议 {low}%–{high}%</div></div>",
+                unsafe_allow_html=True,
+            )
         with cR:
-            st.slider(f"{label}权重 %", 0, 100, key=f"screen_w_{job_id}_{dim}",
-                      label_visibility="collapsed")
+            st.slider(
+                f"{_DIM_LABEL[dim]}权重 %", 0, 60,
+                key=f"screen_w_{job_id}_{dim}",
+                label_visibility="collapsed",
+            )
+            value = int(st.session_state[f"screen_w_{job_id}_{dim}"])
+            hint, hint_level = weight_deviation_hint(dim, value, (low, high))
+            hint_color = TOKENS["success"] if hint_level == "ok" else TOKENS["warning"]
+            st.markdown(
+                f"<div style='color:{hint_color};font-size:.78rem;margin-top:-8px;margin-bottom:8px'>"
+                f"{'✓' if hint_level == 'ok' else '⚠'} {hint}</div>",
+                unsafe_allow_html=True,
+            )
+
+    raw_weights = {
+        dim: int(st.session_state[f"screen_w_{job_id}_{dim}"])
+        for dim in _WEIGHT_DIMS
+    }
+    total, weights_valid, total_message = validate_weight_total(raw_weights)
+    total_color = TOKENS["success"] if weights_valid else TOKENS["warning"]
+    total_bg = "#ECFDF5" if weights_valid else "#FFFBEB"
+    st.markdown(
+        f"<div style='position:sticky;bottom:10px;z-index:5;background:{total_bg};"
+        f"border:1px solid {total_color};border-radius:12px;padding:12px 16px;"
+        f"display:flex;justify-content:space-between;align-items:center;margin:6px 0 18px'>"
+        f"<span style='font-weight:650;color:{TOKENS['text']}'>当前总和："
+        f"<b style='color:{total_color}'>{total}%</b></span>"
+        f"<span style='color:{total_color};font-size:.86rem'>"
+        f"{'✓' if weights_valid else '⚠'} {total_message}</span></div>",
+        unsafe_allow_html=True,
+    )
 
     section("🎯 推荐 / 待定 / 不推进 分数线",
             f"岗位推荐：≥{default_th.get('pass', 80)} 推进 · ≥{default_th.get('hold', 60)} 待定")
@@ -365,20 +419,24 @@ def _render_weights_and_thresholds(job: dict):
             f"</div>",
             unsafe_allow_html=True)
 
-    weights = _normalize_weights(
-        {d: st.session_state[f"screen_w_{job_id}_{d}"] for d in _WEIGHT_DIMS})
+    weights = {dim: raw_weights[dim] / 100 for dim in _WEIGHT_DIMS}
     thresholds = {"pass": int(th_pass), "hold": int(th_hold)}
-    return weights, thresholds
+    config_valid = weights_valid and th_pass > th_hold
+    return weights, thresholds, config_valid
 
 
-def _render_screening_trigger(job: dict, weights: dict, thresholds: dict) -> None:
+def _render_screening_trigger(
+    job: dict, weights: dict, thresholds: dict, config_valid: bool
+) -> None:
     candidates = list_candidates()
     section("🚀 批量筛选",
             f"候选人库 {len(candidates)} 份 · 针对本岗位「{job['title']}」跑匹配评分")
 
-    disabled = (not candidates) or (thresholds["pass"] <= thresholds["hold"])
+    disabled = (not candidates) or (not config_valid)
     if not candidates:
         st.info("候选人库为空，请先把简历数据放入 sessions/candidates/")
+    if not config_valid:
+        st.warning("请先把四项权重调整为总和 100%，并确保推荐阈值高于待定阈值。")
     if st.button("🚀 开始筛选（硬性规则 + 软性 LLM）", type="primary",
                  key=f"run_screen_{job['id']}", disabled=disabled):
         with st.status("筛选中（硬性规则同步 + 软性并发 LLM）...", expanded=True) as s:
@@ -689,6 +747,6 @@ def render():
         st.markdown(job.get("jd_text", "（无 JD 描述）"))
 
     st.divider()
-    weights, thresholds = _render_weights_and_thresholds(job)
-    _render_screening_trigger(job, weights, thresholds)
+    weights, thresholds, config_valid = _render_weights_and_thresholds(job)
+    _render_screening_trigger(job, weights, thresholds, config_valid)
     _render_ranking_and_review(job)
