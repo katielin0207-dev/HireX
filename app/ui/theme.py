@@ -324,6 +324,21 @@ a { color: var(--brand); }
     background: var(--surface-3);
 }
 
+/* ── 多选标签：紫底白字 ───────────────────────────────
+   ★ 全局 `p, li, span, label { color: var(--text-2); }` 会把 st.multiselect
+   选中标签里的文字盖成深色 —— 在紫底上直接看不见。跟主按钮同理，
+   必须显式给后代元素上色。 */
+[data-testid="stMultiSelect"] [data-baseweb="tag"],
+[data-testid="stMultiSelect"] [data-baseweb="tag"] span,
+[data-testid="stMultiSelect"] .st-bb,
+[data-testid="stMultiSelect"] .st-be {
+    color: #fff !important;
+}
+[data-testid="stMultiSelect"] [data-baseweb="tag"] svg,
+[data-testid="stMultiSelect"] .st-be svg {
+    fill: #fff !important;
+}
+
 [data-testid="stFileUploader"] {
     background: var(--surface); border: 1px dashed var(--border-2);
     border-radius: var(--radius); padding: 6px 12px;
