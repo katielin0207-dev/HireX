@@ -6,7 +6,14 @@ import plotly.graph_objects as go
 import streamlit as st
 import streamlit.components.v1 as components
 
-from app.shared import list_candidates, load_jd, update_candidate
+from app.shared import (
+    list_candidates,
+    load_candidate,
+    load_jd,
+    save_jd,
+    update_candidate,
+)
+from app.success_feedback import apply_feedback_to_jd, generate_success_feedback
 from app.talent_pool import (
     RADAR_DIMENSIONS,
     comparison_rows,
@@ -189,6 +196,51 @@ def _confirm(candidate, candidates):
 def _mark(candidate, value):
     update_candidate(candidate["id"], "hr_decision", value)
     st.session_state["talent_notification"] = f"已记录 {candidate.get('name')} 的人工结论：{value}。"
+    st.rerun()
+
+
+def _mark_success_sample(candidate):
+    """确认成功录用后，自动生成下一轮岗位画像优化建议。"""
+    jd = load_jd() or {}
+    feedback = generate_success_feedback(candidate, jd)
+    success_sample = {
+        "confirmed": True,
+        "stage": "已通过试用期",
+        "source_job": jd.get("title") or (jd.get("basics") or {}).get("position") or "当前岗位",
+        "privacy": "仅使用去标识化的履历、匹配与面试评价",
+    }
+    update_candidate(candidate["id"], "success_sample", success_sample)
+    update_candidate(candidate["id"], "success_feedback", feedback)
+    update_candidate(candidate["id"], "status", "hired")
+    if st.session_state.get("declined_candidate_id") == candidate["id"]:
+        st.session_state.pop("declined_candidate_id", None)
+    st.session_state["talent_notification"] = (
+        f"{candidate.get('name')} 已标记为成功样本；AI已生成 {len(feedback.get('suggestions') or [])} 条岗位画像优化建议，等待HR确认。"
+    )
+    st.rerun()
+
+
+def _decide_success_feedback(candidate_id, suggestion_index, decision):
+    """记录HR对回流建议的决定；只有采纳才更新下一版JD。"""
+    stored = load_candidate(candidate_id) or {}
+    feedback = stored.get("success_feedback") or {}
+    suggestions = feedback.get("suggestions") or []
+    if not 0 <= suggestion_index < len(suggestions):
+        return
+    suggestion = suggestions[suggestion_index]
+    if decision == "accepted":
+        updated_jd = apply_feedback_to_jd(load_jd() or {}, suggestion)
+        save_jd(updated_jd)
+        suggestion["decision"] = "accepted"
+        suggestion["decision_label"] = "HR已采纳 · 已更新下一版岗位模板"
+        notice = f"已采纳“{suggestion.get('title')}”，下一轮岗位模板已更新。"
+    else:
+        suggestion["decision"] = "ignored"
+        suggestion["decision_label"] = "HR暂不采纳 · 原岗位模板保持不变"
+        notice = f"已暂不采纳“{suggestion.get('title')}”，原岗位模板未改变。"
+    feedback["suggestions"] = suggestions
+    update_candidate(candidate_id, "success_feedback", feedback)
+    st.session_state["talent_notification"] = notice
     st.rerun()
 
 
@@ -918,6 +970,77 @@ def _pool_tab(candidates):
             _talent_tag_buttons(candidate, talent_profile)
 
 
+def _success_feedback_panel(candidates):
+    """展示成功样本及其岗位画像优化建议。"""
+    successful = [candidate for candidate in candidates if candidate.get("success_sample")]
+    if not successful:
+        return
+    st.markdown(
+        '<div class="feedback-flow"><div><small>成功候选人回流</small>'
+        '<b>录用结果已自动转为岗位画像优化建议</b>'
+        '<p>AI只生成建议并展示证据；是否更新下一轮岗位模板由HR逐条确认。</p></div>'
+        '<span>录用结果 → 特征提取 → 建议生成 → HR确认</span></div>',
+        unsafe_allow_html=True,
+    )
+    for candidate in successful:
+        feedback = candidate.get("success_feedback") or {}
+        sample = candidate.get("success_sample") or {}
+        with st.container(border=True):
+            st.markdown(
+                f'<div class="feedback-head"><div><small>成功样本 · {esc(sample.get("stage", "已确认"))}</small>'
+                f'<b>{esc(candidate.get("name", candidate.get("id")))} → {esc(sample.get("source_job", "当前岗位"))}</b>'
+                f'<p>{esc(sample.get("privacy", "仅使用招聘流程内已授权材料"))}</p></div>'
+                f'<span>{esc(feedback.get("origin", "AI生成"))}</span></div>',
+                unsafe_allow_html=True,
+            )
+            st.caption(feedback.get("sample_scope", "单个成功样本仅作为岗位优化参考，不自动形成淘汰规则。"))
+            suggestions = feedback.get("suggestions") or []
+            for index, suggestion in enumerate(suggestions):
+                decision = suggestion.get("decision", "pending")
+                decision_label = suggestion.get("decision_label") or "等待HR确认"
+                with st.container(border=True):
+                    st.markdown(
+                        f'<div class="feedback-item-title"><div><small>{esc(suggestion.get("type", "岗位画像"))}</small>'
+                        f'<b>{esc(suggestion.get("title", "优化建议"))}</b></div>'
+                        f'<span class="feedback-state {esc(decision)}">{esc(decision_label)}</span></div>',
+                        unsafe_allow_html=True,
+                    )
+                    before, after = st.columns(2, gap="medium")
+                    before.markdown(
+                        f'<div class="feedback-before"><small>修改前</small><p>{esc(suggestion.get("before", "—"))}</p></div>',
+                        unsafe_allow_html=True,
+                    )
+                    after.markdown(
+                        f'<div class="feedback-after"><small>AI建议</small><p>{esc(suggestion.get("after", "—"))}</p></div>',
+                        unsafe_allow_html=True,
+                    )
+                    st.markdown(
+                        f'<div class="feedback-reason"><b>为什么建议</b><p>{esc(suggestion.get("rationale", "—"))}</p>'
+                        f'<small>影响范围：{esc(suggestion.get("impact", "仅影响下一轮岗位模板"))}</small></div>',
+                        unsafe_allow_html=True,
+                    )
+                    with st.expander("查看原材料依据"):
+                        for evidence in suggestion.get("evidence") or []:
+                            st.markdown(
+                                f'**{esc(evidence.get("source", "候选人材料"))}**  \n'
+                                f'“{esc(evidence.get("quote", "待复核"))}”'
+                            )
+                    accept, ignore, note = st.columns([1, 1, 3], vertical_alignment="center")
+                    accept.button(
+                        "采纳并更新模板", key=f"feedback_accept_{candidate['id']}_{index}",
+                        type="primary", use_container_width=True,
+                        disabled=decision != "pending", on_click=_decide_success_feedback,
+                        args=(candidate["id"], index, "accepted"),
+                    )
+                    ignore.button(
+                        "暂不采纳", key=f"feedback_ignore_{candidate['id']}_{index}",
+                        use_container_width=True, disabled=decision != "pending",
+                        on_click=_decide_success_feedback,
+                        args=(candidate["id"], index, "ignored"),
+                    )
+                    note.caption("所有变更仅作用于下一轮招聘，历史候选人评分与报告保持不变。")
+
+
 def _offer_tab(candidates):
     offered = [candidate for candidate in candidates if candidate.get("status") == "offered"]
     declined_id = st.session_state.get("declined_candidate_id")
@@ -925,7 +1048,12 @@ def _offer_tab(candidates):
         names = {candidate["id"]: candidate.get("name", candidate["id"]) for candidate in offered}
         st.markdown('<div class="offer-monitor"><span class="pulse"></span><div><b>Offer状态监听正常</b><small>状态变化后立即启动备选人才排序与推送</small></div></div>', unsafe_allow_html=True)
         selected_id = st.selectbox("已发Offer候选人", list(names), format_func=lambda candidate_id: names[candidate_id])
-        if st.button("模拟候选人放弃Offer", type="primary"):
+        selected_candidate = next(candidate for candidate in offered if candidate["id"] == selected_id)
+        success_col, decline_col = st.columns(2)
+        if success_col.button("确认通过试用期 · 回流成功样本", type="primary", use_container_width=True):
+            with st.spinner("正在提取成功特征并生成岗位画像优化建议..."):
+                _mark_success_sample(selected_candidate)
+        if decline_col.button("模拟候选人放弃Offer", use_container_width=True):
             update_candidate(selected_id, "status", "declined")
             st.session_state["declined_candidate_id"] = selected_id
             st.session_state["talent_notification"] = f"{names[selected_id]} 已放弃Offer；备选汇总表已推送给HR和用人部门。"
@@ -964,6 +1092,8 @@ def _offer_tab(candidates):
                         st.rerun()
         else:
             st.warning("当前没有满足条件的合格备选人才。")
+
+    _success_feedback_panel(candidates)
 
 
 def render():
@@ -1045,6 +1175,7 @@ def _styles():
         .tag-guide{display:flex;align-items:center;gap:10px;margin:14px 0 7px;padding-top:12px;border-top:1px solid #e7eff0;color:var(--hx-navy);font-size:12px;font-weight:700}.tag-guide span{font-size:10px;color:#8a9da4;font-weight:400}.tag-category{margin:2px 0 6px;color:#71868e;font-size:10px;font-weight:700;letter-spacing:.04em}.reuse-components{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}.reuse-components div{text-align:center;padding:10px 5px;background:#f6fafb;border:1px solid #e1ecee;border-radius:10px}.reuse-components b{display:block;color:var(--hx-teal);font-size:18px}.reuse-components span{display:block;color:#84979e;font-size:9px;margin-top:2px}
         .offer-monitor{display:flex;align-items:center;gap:12px;padding:14px 17px;margin:15px 0;border:1px solid #cfe5e4;background:#f4fbfa;border-radius:14px}.offer-monitor b{display:block;color:var(--hx-navy)}.offer-monitor small{display:block;color:#80949c;font-size:11px;margin-top:3px}.pulse{width:10px;height:10px;border-radius:50%;background:var(--hx-teal);box-shadow:0 0 0 6px rgba(0,166,156,.12)}
         .offer-alert{padding:18px 20px;margin:16px 0;background:#fff6ed;border:1px solid #f4ccaa;border-left:5px solid #e78934;border-radius:14px}.offer-alert small{display:block;color:#b6763b}.offer-alert b{display:block;color:#873f20;font-size:19px;margin:3px 0}.offer-alert p{margin:0;font-size:12px;color:#8f664f}
+        .feedback-flow{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:18px 20px;margin:22px 0 14px;background:#eff9f8;border:1px solid #cbe7e4;border-radius:16px}.feedback-flow small,.feedback-head small{display:block;color:#4c8f8a;font-size:10px}.feedback-flow b{display:block;color:var(--hx-navy);font-size:17px;margin-top:2px}.feedback-flow p,.feedback-head p{margin:5px 0 0;color:#6b818a;font-size:11px}.feedback-flow>span{padding:7px 11px;border-radius:999px;background:#fff;color:var(--hx-teal);border:1px solid #cbe7e4;font-size:10px;white-space:nowrap}.feedback-head,.feedback-item-title{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}.feedback-head b{display:block;color:var(--hx-navy);font-size:18px;margin-top:2px}.feedback-head>span{padding:4px 9px;border-radius:999px;background:#e4f6f3;color:#23857f;font-size:10px}.feedback-item-title b{display:block;color:var(--hx-navy);font-size:14px;margin-top:2px}.feedback-state{padding:4px 9px;border-radius:999px;background:#f3f6f7;color:#768b94;font-size:9px;white-space:nowrap}.feedback-state.accepted{background:#e6f7ef;color:#16825f}.feedback-state.ignored{background:#f2f4f5;color:#7b8a91}.feedback-before,.feedback-after{min-height:72px;padding:11px 13px;border-radius:11px;border:1px solid #e1eaec;background:#f8fafb}.feedback-after{border-color:#cce8e5;background:#eff9f8}.feedback-before small,.feedback-after small{color:#8799a1;font-size:9px}.feedback-before p,.feedback-after p{margin:5px 0 0;color:#536b75;font-size:11px;line-height:1.55}.feedback-reason{padding:10px 13px;margin:10px 0;border-left:3px solid var(--hx-teal);background:#f8fbfb}.feedback-reason b{color:var(--hx-navy);font-size:11px}.feedback-reason p{margin:4px 0;color:#607780;font-size:11px;line-height:1.55}.feedback-reason small{color:#8b9ca3;font-size:9px}
         .detail-head small{display:block;color:var(--hx-teal);font-size:10px;letter-spacing:.08em}.detail-head b{display:block;color:var(--hx-navy);font-size:25px;margin-top:2px}.detail-head span{display:block;color:#768b94;font-size:12px;margin-top:4px}
         .detail-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0}.detail-kpis>div{padding:13px 15px;background:#f6fafb;border:1px solid #e2edef;border-radius:13px}.detail-kpis small{display:block;color:#82969e}.detail-kpis b{display:block;color:var(--hx-teal);font-size:28px;line-height:1.15;margin:3px 0}.detail-kpis span{font-size:10px;color:#94a5ab}
         .detail-panel-title{font-size:14px;color:var(--hx-navy);font-weight:700;margin:7px 0 13px}.ability-bar{display:grid;grid-template-columns:62px 1fr 28px;align-items:center;gap:8px;margin:10px 0}.ability-bar>span{font-size:11px;color:#657b84}.ability-bar>div{height:7px;border-radius:99px;background:#e6eff0;overflow:hidden}.ability-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--hx-teal),#4e96a9)}.ability-bar b{font-size:11px;color:var(--hx-navy);text-align:right}
@@ -1058,7 +1189,7 @@ def _styles():
         .source-label{color:var(--hx-navy);font-size:12px;font-weight:700;margin-bottom:8px}.source-quote{padding:15px 17px;border-radius:13px;background:#f7fafb;border-left:4px solid var(--hx-teal);font-size:12px;line-height:1.75;color:#506872}.ai-inference{padding:13px 15px;border-radius:13px;background:#edf9f7;border-left:4px solid var(--hx-teal)}.ai-inference p{margin:0;color:#50647a;font-size:12px;line-height:1.65}.ai-inference small{display:block;text-align:right;color:#7d9b99;font-size:9px;margin-top:8px}.trace-chain{display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;align-items:center;gap:8px;margin:17px 0 4px;padding:14px;background:#f4f8f8;border-radius:14px}.trace-chain div{text-align:center}.trace-chain b{display:block;color:var(--hx-navy);font-size:11px}.trace-chain span{font-size:9px;color:#8b9da4}.trace-chain i{font-style:normal;color:var(--hx-teal)}
         .evidence-row{padding:12px 14px;margin:8px 0;border:1px solid #dce9eb;border-radius:12px;background:#fbfdfd}.evidence-row b{color:var(--hx-navy);font-size:12px}.evidence-row p{margin:5px 0 0;color:#687e87;font-size:12px;line-height:1.55}.risk-detail{padding:13px 15px;margin:9px 0;border-radius:12px;background:#fff8ee;border:1px solid #f1d4ad}.risk-detail b{color:#a65b20}.risk-detail p{font-size:12px;margin:5px 0;color:#7d634f}.risk-detail small{font-size:10px;color:#9a806b}
         [data-testid="stDataFrame"],[data-testid="stPlotlyChart"]{border-color:var(--hx-line)!important;box-shadow:none!important}.stButton>button[kind="primary"]{background:var(--hx-teal);border-color:var(--hx-teal)}
-        @media(max-width:900px){.talent-page-head{align-items:flex-start;flex-direction:column}.talent-head-stats{width:100%;justify-content:space-between}.talent-head-stats>div{flex:1}.candidate-conclusion{grid-template-columns:1fr}.detail-kpis{grid-template-columns:repeat(2,1fr)}.detail-steps i{display:none}.evidence-hero{grid-template-columns:1fr}.trace-chain{grid-template-columns:1fr}.trace-chain i{transform:rotate(90deg)}[data-testid="stTabs"] [data-testid="stTab"]{padding:0 12px!important}}
+        @media(max-width:900px){.talent-page-head,.feedback-flow{align-items:flex-start;flex-direction:column}.talent-head-stats{width:100%;justify-content:space-between}.talent-head-stats>div{flex:1}.candidate-conclusion{grid-template-columns:1fr}.detail-kpis{grid-template-columns:repeat(2,1fr)}.detail-steps i{display:none}.evidence-hero{grid-template-columns:1fr}.trace-chain{grid-template-columns:1fr}.trace-chain i{transform:rotate(90deg)}[data-testid="stTabs"] [data-testid="stTab"]{padding:0 12px!important}}
         </style>
         """,
         unsafe_allow_html=True,

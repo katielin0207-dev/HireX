@@ -37,6 +37,8 @@ def decision_score(candidate: dict) -> float | None:
 def display_stage(candidate: dict) -> str:
     """把底层状态翻译为 HR 能快速理解的招聘阶段。"""
     status = candidate.get("status", "new")
+    if status == "hired":
+        return "已入职·成功样本"
     if status == "offered":
         return "已发Offer"
     if status == "in_pool":
@@ -54,7 +56,7 @@ def is_pool_qualified(candidate: dict) -> bool:
         bool(candidate.get("match_result"))
         and overall_score(candidate) >= 60
         and (candidate.get("risk_report") or {}).get("level") != "高"
-        and candidate.get("status") not in {"offered", "declined"}
+        and candidate.get("status") not in {"offered", "declined", "hired"}
     )
 
 
@@ -92,7 +94,7 @@ def radar_scores(candidate: dict) -> dict[str, float]:
 
 def recommend_backups(candidates: Iterable[dict], declined_id: str) -> list[dict]:
     """排除放弃者和高风险者，按匹配分推荐仍可推进的候选人。"""
-    excluded_statuses = {"declined", "offered"}
+    excluded_statuses = {"declined", "offered", "hired"}
     backups = []
     for candidate in candidates:
         if candidate.get("id") == declined_id:

@@ -59,3 +59,8 @@ def test_display_stage_prioritizes_business_status():
     candidate = _candidate("A", 90, status="offered")
     candidate["interview_eval"] = {"dimension_scores": {"专业能力": 80}}
     assert display_stage(candidate) == "已发Offer"
+
+
+def test_display_stage_marks_success_sample():
+    candidate = _candidate("A", 90, status="hired")
+    assert display_stage(candidate) == "已入职·成功样本"
