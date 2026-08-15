@@ -435,7 +435,7 @@ def render_screening():
             return ("background-color: #dcfce7" if v >= 80
                     else "background-color: #fef9c3" if v >= 60
                     else "background-color: #fee2e2")
-        styled = df.style.applymap(_color, subset=["总分"])
+        styled = df.style.map(_color, subset=["总分"])
         st.dataframe(styled, use_container_width=True, hide_index=True)
 
         # 用人部门审核
