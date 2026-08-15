@@ -4,6 +4,7 @@
 用法见 docs/CONTRACT.md 第 5 节。
 """
 from .llm import call_llm
+from .parallel import map_llm
 from .store import (
     save_candidate,
     load_candidate,
@@ -16,6 +17,7 @@ from .demo_cache import demo_mode_enabled, load_demo_cache, save_demo_cache
 
 __all__ = [
     "call_llm",
+    "map_llm",
     "save_candidate",
     "load_candidate",
     "update_candidate",

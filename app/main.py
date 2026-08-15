@@ -44,6 +44,7 @@ from app.ui import inject_theme
 from app.views import analysis as view_analysis
 from app.views import interview as view_interview
 from app.views import report as view_report
+from app.views import screening as view_screening
 
 inject_theme()
 
@@ -61,7 +62,7 @@ DEFAULTS = {
     "tts_error": "", "tts_notice": "",   # 语音失败/降级提示，由侧边栏消费后清空
     "digital_human_enabled": True,
     "n_rounds": settings.DEFAULT_SAMPLE_ROUNDS,
-    "active_tab": "analysis", "ui_lang": "zh",
+    "active_tab": "screening", "ui_lang": "zh",
     "interview_link_info": None,   # 面试链接信息 {token, link, ...}
     "voice_input_text": "",        # 语音识别的文本
 }
@@ -803,6 +804,10 @@ def _render_candidate_chat(agent, token, deactivate_interview):
 # ── 三个主页面：只做路由，渲染在 app/views/ ────────────
 # ★ 改造前这三个函数各自几百行，全部挤在 main.py（2156 行）里，
 #   页头 HTML（含同一张 5KB base64 logo）被复制了三份。
+def tab_screening():
+    view_screening.render()
+
+
 def tab_resume_analysis():
     view_analysis.render()
 
@@ -857,6 +862,8 @@ st.markdown(f"""
 #   `active_tab` 里存的旧中文标签就再也匹配不上任何选项 —— 切语言会把
 #   用户踢回首页。分离之后，语言和导航状态互不影响。
 NAV = [
+    # ★ MVP 主链路入口：A 的简历筛选模块（导入→筛选→风险→面试→评价→对比）
+    ("screening", "📋 简历筛选"),
     ("analysis",  "📄 " + _t("nav.analysis")),
     ("interview", "🤖 " + _t("nav.interview")),
     ("report",    "📊 " + _t("nav.report")),
@@ -881,7 +888,9 @@ active = st.radio("导航", nav_keys,
     key="_nav_radio", horizontal=True, label_visibility="collapsed")
 st.session_state.active_tab = active
 
-if active == "analysis":
+if active == "screening":
+    tab_screening()
+elif active == "analysis":
     tab_resume_analysis()
 elif active == "interview":
     tab_ai_interview()
