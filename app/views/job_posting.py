@@ -8,6 +8,7 @@ import re
 import streamlit as st
 
 from app.config import settings
+from app.parser import parse_uploaded_file
 from app.shared import call_llm, save_jd, load_jd
 from app.shared.demo_cache import demo_mode_enabled
 from app.shared.job_utils import (
@@ -24,6 +25,79 @@ SYSTEM_JOB_PROFILE = (
     "你是海信容声家电制造企业的资深招聘专家。根据岗位模板完善岗位画像，"
     "不得虚构企业制度、薪资或无法验证的资质要求，只输出合法 JSON。"
 )
+SYSTEM_UPLOAD_PROFILE = (
+    "你是企业招聘岗位信息整理助手。只依据上传材料提取信息，不得虚构材料中不存在的要求；"
+    "允许对职责进行归纳，但不补写薪资、福利或强制资质。只输出合法 JSON。"
+)
+
+
+def extract_uploaded_job_profile(raw_text: str) -> tuple[dict, bool]:
+    """从上传的岗位截图/文档中提取可编辑岗位画像。"""
+    fallback_req = _local_parse_jd(raw_text)
+    fallback = {
+        "title": fallback_req.get("title") or "待确认岗位",
+        "dept": "",
+        "location": "",
+        "level": "",
+        "count": 1,
+        "base_requirements": raw_text.strip().replace("\n", "；")[:220],
+        "hard": fallback_req.get("hard") or {},
+        "soft": fallback_req.get("soft") or [],
+        "responsibilities": [],
+        "role_summary": "由上传材料生成的初步岗位画像",
+    }
+    if demo_mode_enabled() or not settings.is_configured:
+        return fallback, False
+
+    prompt = f"""请从以下岗位发布材料中提取岗位画像。没有明确写出的字段用空字符串、0或空数组表示。
+
+【上传材料】
+{raw_text[:12000]}
+
+输出 JSON：
+{{
+  "title": "岗位名称",
+  "dept": "所属部门",
+  "location": "工作地点",
+  "level": "职级",
+  "count": 招聘人数数字,
+  "base_requirements": "80字以内岗位目标与核心工作概述",
+  "hard": {{
+    "degree": "学历要求",
+    "min_years": 最低年限数字,
+    "must_skills": ["可核验的必备技能"],
+    "nice_skills": ["加分技能"]
+  }},
+  "soft": ["软实力"],
+  "responsibilities": ["岗位职责"],
+  "role_summary": "一句话岗位画像"
+}}"""
+    try:
+        result = call_llm(prompt, system=SYSTEM_UPLOAD_PROFILE, expect_json=True)
+        if not isinstance(result, dict):
+            return fallback, False
+        result_hard = result.get("hard") if isinstance(result.get("hard"), dict) else {}
+        fallback_hard = fallback.get("hard") or {}
+        return {
+            **fallback,
+            "title": str(result.get("title") or fallback["title"]),
+            "dept": str(result.get("dept") or ""),
+            "location": str(result.get("location") or ""),
+            "level": str(result.get("level") or ""),
+            "count": int(result.get("count") or 1),
+            "base_requirements": str(result.get("base_requirements") or fallback["base_requirements"])[:240],
+            "hard": {
+                "degree": str(result_hard.get("degree") or fallback_hard.get("degree") or "不限"),
+                "min_years": int(result_hard.get("min_years") or fallback_hard.get("min_years") or 0),
+                "must_skills": [str(x) for x in (result_hard.get("must_skills") or fallback_hard.get("must_skills") or [])][:8],
+                "nice_skills": [str(x) for x in (result_hard.get("nice_skills") or fallback_hard.get("nice_skills") or [])][:6],
+            },
+            "soft": [str(x) for x in (result.get("soft") or fallback["soft"])][:6],
+            "responsibilities": [str(x) for x in (result.get("responsibilities") or [])][:6],
+            "role_summary": str(result.get("role_summary") or fallback["role_summary"])[:120],
+        }, True
+    except Exception:
+        return fallback, False
 
 def _responsibilities_from_jd(jd_text: str) -> list[str]:
     """从模板 JD 的岗位职责段提取要点。"""
@@ -181,6 +255,12 @@ def _local_parse_jd(raw_text: str) -> dict:
     soft_words = ("沟通协作", "跨部门沟通", "问题分析", "抗压能力", "团队协作", "学习能力")
     soft = [word for word in soft_words if word in text]
     title_match = re.search(r"(?:招聘|岗位[:：]?|职位[:：]?)\s*([^，。\n]{2,20})", text)
+    if not title_match:
+        title_match = re.search(
+            r"^\s*([^，。\n]{2,24}(?:工程师|专员|经理|主管|总监|技术员|操作工|技师))\s*$",
+            text,
+            re.MULTILINE,
+        )
     title = title_match.group(1).strip() if title_match else "待确认岗位"
     return {
         "title": title,
@@ -400,6 +480,72 @@ def render():
             key="regenerate_selected_job",
         )
 
+    # ── AI 快速上传：岗位截图 / PDF / Word → 初步 JD ─────────
+    with st.container(border=True):
+        upload_intro, upload_action = st.columns([3.6, 1.4], gap="large")
+        with upload_intro:
+            section("AI 快速上传", "上传岗位截图或文档，自动识别并转换为可编辑 JD")
+            uploaded_job_file = st.file_uploader(
+                "岗位材料",
+                type=["png", "jpg", "jpeg", "webp", "pdf", "docx", "txt", "md"],
+                key="jd_quick_upload",
+                label_visibility="collapsed",
+                help="支持岗位截图、PDF、Word、TXT 和 Markdown，建议文件不超过 10MB。",
+            )
+        with upload_action:
+            st.caption("识别后不会直接发布")
+            convert_uploaded_job = st.button(
+                "AI识别并转成JD",
+                type="primary",
+                use_container_width=True,
+                disabled=uploaded_job_file is None,
+                key="convert_uploaded_job",
+            )
+
+    if convert_uploaded_job and uploaded_job_file is not None:
+        if uploaded_job_file.size > 10 * 1024 * 1024:
+            st.error("文件超过 10MB，请压缩后重新上传。")
+        else:
+            with st.status("正在识别岗位材料...", expanded=True) as status:
+                try:
+                    status.write("提取截图或文档中的岗位文字...")
+                    raw_upload_text = parse_uploaded_file(
+                        uploaded_job_file.getvalue(), uploaded_job_file.name
+                    )
+                    if len(raw_upload_text.strip()) < 12:
+                        raise ValueError("识别到的岗位文字过少，请上传更完整的材料。")
+                    status.write("AI 正在整理岗位职责、技能和软实力...")
+                    profile, used_ai = extract_uploaded_job_profile(raw_upload_text)
+                    basics, requirements = _profile_payload(profile)
+                    try:
+                        jd_text = generate_jd_text(requirements, basics)
+                    except Exception:
+                        jd_text = _local_jd_text(requirements, basics)
+                    origin = "AI 文件识别初步生成" if used_ai else "文件识别初步生成"
+                    save_jd({
+                        "title": requirements["title"],
+                        "basics": basics,
+                        "requirements": requirements,
+                        "jd_text_generated": jd_text,
+                        "raw_text": raw_upload_text,
+                        "source_file_name": uploaded_job_file.name,
+                        "source_type": "uploaded_job_material",
+                        "generation_origin": origin,
+                        "generation_status": "draft",
+                        "role_summary": profile.get("role_summary", ""),
+                        "responsibilities": profile.get("responsibilities", []),
+                    })
+                    st.session_state["_jd_form_seed"] = _profile_form_seed(profile)
+                    st.session_state["_jd_selected_job_applied"] = f"upload:{uploaded_job_file.name}"
+                    st.session_state["_jd_generation_origin"] = origin
+                    st.session_state["_jd_editor_visible"] = True
+                    st.session_state["jd_text_edit"] = jd_text
+                    status.update(label="岗位材料已转成初步 JD，请检查修改", state="complete")
+                    st.rerun()
+                except ValueError as exc:
+                    status.update(label="岗位材料识别失败", state="error")
+                    st.error(str(exc))
+
     if selected_category == "高风险复核池":
         st.caption("高风险复核池用于候选人复核，不属于招聘岗位，因此不会生成 JD。")
 
@@ -567,6 +713,7 @@ def render():
             else "岗位模板初步生成"
         )
         st.session_state["_jd_editor_visible"] = True
+        st.session_state["jd_text_edit"] = jd_text
         st.success("已生成 JD 描述，可在下方查看并编辑")
         st.rerun()
 
@@ -597,7 +744,6 @@ def render():
 
             edited = st.text_area(
                 "招聘文案（Markdown，可编辑）",
-                value=jd_text,
                 height=320,
                 key="jd_text_edit",
             )
