@@ -17,7 +17,7 @@ _TYPE_LABELS = ["经历断层", "频繁跳槽", "证书过期", "信息存疑", 
 
 def render() -> None:
     _inject_risk_styles()
-    page_header("智能分析", "批量比较候选人的匹配度、风险等级和下一步推进建议", "⚡")
+    page_header("风险识别", "批量比较候选人的匹配度、风险等级和下一步推进建议", "⚡")
 
     jd = load_jd()
     candidates = list_candidates()
@@ -26,17 +26,17 @@ def render() -> None:
         return
 
     selected_id = _render_batch_dashboard(jd, candidates)
+    if not st.session_state.get("risk_drilldown_open"):
+        st.caption("从候选人行中点击“查看详情”“复核风险”或“背调结果”，再按需查看该候选人的信息与证据。")
+        return
+
     candidate = load_candidate(selected_id)
     if not candidate:
         st.error("候选人数据不存在，请刷新后重试。")
         return
 
-    _render_command_bar(candidate, jd, selected_id)
-
     st.divider()
-    candidate = load_candidate(selected_id) or candidate
-    _render_report(candidate)
-    _render_raw(candidate)
+    _render_candidate_drilldown(candidate, jd, selected_id)
 
 
 def _candidate_selector(candidates: list[dict]) -> str:
@@ -46,7 +46,13 @@ def _candidate_selector(candidates: list[dict]) -> str:
 
 
 def _render_batch_dashboard(jd: dict, candidates: list[dict]) -> str:
-    rows = _candidate_rows(candidates)
+    job_filter = st.selectbox(
+        "岗位范围",
+        ["当前岗位", "工程师/技术岗", "制造/工艺岗", "质量/IE方向", "职能/非技术岗", "高风险复核池"],
+        help="批量处理时先缩小候选人范围，避免在全量人才池中反复翻找。",
+    )
+    scoped_candidates = _filter_candidates_by_job(candidates, job_filter)
+    rows = _candidate_rows(scoped_candidates)
     selected_default = st.session_state.get("risk_selected_candidate")
     if selected_default not in {r["id"] for r in rows}:
         selected_default = rows[0]["id"] if rows else ""
@@ -56,15 +62,15 @@ def _render_batch_dashboard(jd: dict, candidates: list[dict]) -> str:
     proceed_count = sum(1 for r in rows if r["推荐动作"] in ("优先推进", "进入AI面试"))
     verify_count = sum(1 for r in rows if "核验" in r["推荐动作"] or r["风险等级"] == "中")
     high_count = sum(1 for r in rows if r["风险等级"] == "高")
-    bg = _batch_background_stats(candidates)
+    bg = _batch_background_stats(scoped_candidates)
 
     st.markdown(
         f"""
         <div class="batch-hero">
           <div>
             <div class="risk-eyebrow">岗位智能分析</div>
-            <div class="batch-title">{esc(jd.get("title", "当前岗位"))}</div>
-            <div class="batch-sub">先批量排序，再点选候选人查看风险证据和面试核验动作。</div>
+            <div class="batch-title">{esc(_job_title_for_filter(jd, job_filter))}</div>
+            <div class="batch-sub">批量查看匹配、风险和背调结论；只在选中候选人后再展开复核证据。</div>
           </div>
           <div class="batch-best">
             <span>当前首选</span>
@@ -94,6 +100,10 @@ def _render_batch_dashboard(jd: dict, candidates: list[dict]) -> str:
         unsafe_allow_html=True,
     )
 
+    if not rows:
+        st.info("当前岗位范围下暂无候选人。可以切换岗位范围，或先在简历筛选页导入候选人。")
+        return candidates[0]["id"] if candidates else ""
+
     c1, c2, c3, c4 = st.columns([1.1, 1, 1, 1], gap="medium")
     with c1:
         sort_by = st.selectbox("排序", ["综合推荐", "匹配分最高", "风险最高", "待核验优先"], label_visibility="collapsed")
@@ -104,9 +114,9 @@ def _render_batch_dashboard(jd: dict, candidates: list[dict]) -> str:
     with c4:
         if st.button("批量规则扫描", use_container_width=True):
             with st.status("正在批量扫描候选人风险...", expanded=True) as status:
-                total_items = max(1, len(candidates))
+                total_items = max(1, len(scoped_candidates))
                 progress = st.progress(0)
-                for idx, cand in enumerate(candidates, start=1):
+                for idx, cand in enumerate(scoped_candidates, start=1):
                     status.write(f"扫描 {cand.get('name', cand.get('id'))}")
                     report = analyze_risk(cand, jd, use_llm=False)
                     update_candidate(cand["id"], "risk_report", report)
@@ -115,13 +125,13 @@ def _render_batch_dashboard(jd: dict, candidates: list[dict]) -> str:
             st.rerun()
 
     filtered = _sort_rows(_filter_rows(rows, risk_filter, action_filter), sort_by)
-    _render_batch_table(filtered, candidates, jd)
+    _render_batch_table(filtered, scoped_candidates, jd)
 
     ids = [r["id"] for r in filtered] or [r["id"] for r in rows]
     labels = {r["id"]: f'{r["姓名"]} · {r["匹配分"]}分 · {r["风险等级"]}风险 · {r["推荐动作"]}' for r in rows}
     index = ids.index(selected_default) if selected_default in ids else 0
     selected_id = st.selectbox(
-        "选择候选人查看详情",
+        "当前处理候选人",
         options=ids,
         index=index,
         format_func=lambda cid: labels.get(cid, cid),
@@ -134,52 +144,155 @@ def _render_batch_table(rows: list[dict], candidates: list[dict], jd: dict) -> N
     if not rows:
         st.info("当前筛选条件下没有候选人。")
         return
-    candidate_map = {c.get("id"): c for c in candidates}
     st.markdown('<div class="candidate-list-head">候选人批量分析</div>', unsafe_allow_html=True)
-    for row in rows:
+    st.markdown(
+        '<div class="candidate-list-columns"><span>候选人</span><span>匹配与风险摘要</span><span>操作</span></div>',
+        unsafe_allow_html=True,
+    )
+    for number, row in enumerate(rows, start=1):
         cid = row["id"]
         level = row["风险等级"]
         level_tone = _LEVEL_TONE.get(level, "neutral")
         action_tone = _action_tone(row["推荐动作"])
-        with st.container():
+        short_tags = [tag.strip() for tag in row["关键标签"].split("/") if tag.strip() and tag.strip() != "暂无"]
+        left, middle, right = st.columns([2.35, 3.7, 4.15], gap="small")
+        with left:
             st.markdown(
                 f"""
-                <div class="candidate-row">
-                  <div class="candidate-main">
+                <div class="candidate-batch-cell candidate-person">
+                  <div class="candidate-number">{number}</div>
+                  <div>
                     <div class="candidate-name">{esc(row["姓名"])}</div>
-                    <div class="candidate-reason">{esc(row["推荐理由"])}</div>
-                    <div class="candidate-tags">
-                      {pill(f'{row["匹配分"]}分', "brand")}
-                      {pill(f'{level}风险', level_tone)}
-                      {pill(row["推荐动作"], action_tone)}
-                      {''.join(pill(t.strip(), "neutral") for t in row["关键标签"].split("/")[:2] if t.strip() and t.strip() != "暂无")}
-                    </div>
+                    <div class="candidate-reason">{esc(row["推荐动作"])}</div>
                   </div>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
-            col_view, col_interview, col_refresh = st.columns([1, 1, 1], gap="small")
-            with col_view:
+        with middle:
+            st.markdown(
+                f"""
+                <div class="candidate-batch-cell candidate-summary">
+                  <div class="candidate-tags candidate-tags-tight">
+                    {pill(f'匹配 {row["匹配分"]} 分', "brand")}
+                    {pill(f'{level}风险', level_tone)}
+                    {''.join(pill(tag, "neutral") for tag in short_tags[:3])}
+                  </div>
+                  <div class="candidate-reason candidate-reason-one-line">{esc(_batch_snapshot(row, short_tags))}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        with right:
+            action_1, action_2, action_3, action_4 = st.columns(4, gap="small")
+            with action_1:
                 if st.button("查看详情", key=f"view_{cid}", use_container_width=True):
-                    st.session_state["risk_selected_candidate"] = cid
-                    st.rerun()
-            with col_interview:
-                if st.button("进入 AI 面试", key=f"interview_{cid}", use_container_width=True):
+                    _open_candidate_drilldown(cid, "详情")
+            with action_2:
+                if st.button("复核风险", key=f"risk_{cid}", use_container_width=True):
+                    _open_candidate_drilldown(cid, "风险")
+            with action_3:
+                if st.button("背调结果", key=f"background_{cid}", use_container_width=True):
+                    _open_candidate_drilldown(cid, "背调")
+            with action_4:
+                if st.button("进入面试", key=f"interview_{cid}", type="primary", use_container_width=True):
                     st.session_state["selected_candidate_id"] = cid
                     st.session_state["risk_selected_candidate"] = cid
+                    update_candidate(cid, "status", "interview_pack_ready")
                     st.session_state["active_tab"] = "interview_eval"
                     st.session_state["_nav_radio"] = "interview_eval"
                     st.rerun()
-            with col_refresh:
-                if st.button("复核风险", key=f"refresh_{cid}", use_container_width=True):
-                    candidate = candidate_map.get(cid)
-                    if candidate:
-                        report = analyze_risk(candidate, jd, use_llm=False)
-                        update_candidate(cid, "risk_report", report)
-                        update_candidate(cid, "status", "risk_checked")
-                        st.session_state["risk_selected_candidate"] = cid
-                        st.rerun()
+
+
+def _open_candidate_drilldown(candidate_id: str, panel: str) -> None:
+    st.session_state["risk_selected_candidate"] = candidate_id
+    st.session_state["risk_drilldown_open"] = True
+    st.session_state["risk_drilldown_panel"] = panel
+    st.rerun()
+
+
+def _render_candidate_drilldown(candidate: dict, jd: dict, selected_id: str) -> None:
+    panel = st.session_state.get("risk_drilldown_panel", "详情")
+    panel_label = {"详情": "候选人详情", "风险": "风险复核", "背调": "背调结果"}.get(panel, "候选人详情")
+    col_title, col_close = st.columns([8, 1])
+    with col_title:
+        st.markdown(f'<div class="candidate-drilldown-title">{esc(panel_label)} · {esc(candidate.get("name", selected_id))}</div>', unsafe_allow_html=True)
+    with col_close:
+        if st.button("收起", key="close_risk_drilldown", use_container_width=True):
+            st.session_state["risk_drilldown_open"] = False
+            st.rerun()
+
+    _render_flow_tracker(candidate)
+    _render_command_bar(candidate, jd, selected_id)
+
+    report = candidate.get("risk_report") or {}
+    risks = report.get("risks") or []
+    level = report.get("level", "未核验")
+    if panel == "背调":
+        _render_background_result(candidate, risks)
+        return
+    if panel == "风险":
+        _render_risk_review(candidate, risks, level)
+        return
+
+    _render_candidate_summary(candidate, risks, level)
+
+
+def _render_candidate_summary(candidate: dict, risks: list[dict], level: str) -> None:
+    match = candidate.get("match_result") or {}
+    decision = _decision_for(level, risks, match)
+    _render_decision_banner(level, risks, decision)
+    st.caption("需要确认风险证据或第三方背调结论时，请回到候选人行点击对应小按钮。")
+
+
+def _render_risk_review(candidate: dict, risks: list[dict], level: str) -> None:
+    if not candidate.get("risk_report"):
+        _render_empty_report()
+        return
+    match = candidate.get("match_result") or {}
+    decision = _decision_for(level, risks, match)
+    _render_decision_banner(level, risks, decision)
+    col_left, col_right = st.columns([1.25, 1], gap="large")
+    with col_left:
+        _render_risk_cards(risks)
+    with col_right:
+        _render_verification_actions((candidate.get("risk_report") or {}).get("interview_focus") or [], level)
+    _render_detail_table(risks)
+
+
+def _render_background_result(candidate: dict, risks: list[dict]) -> None:
+    brief = _background_brief(candidate)
+    tone_label = {"success": "未发现异常", "warning": "待补充核验", "danger": "存在异常"}
+    st.markdown(
+        f'''<div class="background-result-banner {esc(brief["tone"])}">
+              <span>背调匹配</span><strong>{esc(tone_label.get(brief["tone"], brief["label"]))}</strong>
+              <small>{esc(brief["detail"])}。报告结果仅供招聘决策复核，最终以合规背调授权及正式报告为准。</small>
+            </div>''',
+        unsafe_allow_html=True,
+    )
+    _render_background_check(candidate, risks, compact=False)
+
+
+def _render_flow_tracker(candidate: dict) -> None:
+    status = candidate.get("status", "new")
+    steps = [
+        ("screened", "已筛选"),
+        ("risk_checked", "风险核验"),
+        ("phone_screen_pending", "HR电话初面"),
+        ("phone_screen_passed", "初面通过"),
+        ("interview_pack_ready", "面试包"),
+        ("interviewed", "面试评价"),
+        ("decision_pending", "待决策"),
+    ]
+    rank = {key: idx for idx, (key, _label) in enumerate(steps)}
+    current = rank.get(status, -1)
+    html = []
+    for idx, (key, label) in enumerate(steps):
+        cls = "done" if idx <= current else "todo"
+        if key == status:
+            cls = "current"
+        html.append(f'<span class="flow-pill {cls}">{esc(label)}</span>')
+    st.markdown(f'<div class="b-flow">{"".join(html)}</div>', unsafe_allow_html=True)
 
 
 def _render_command_bar(candidate: dict, jd: dict, selected_id: str) -> None:
@@ -207,6 +320,7 @@ def _render_command_bar(candidate: dict, jd: dict, selected_id: str) -> None:
         """,
         unsafe_allow_html=True,
     )
+    st.caption("选中该候选人后，可查看复核依据、推进 HR 电话初面，或生成专属面试包。")
 
     col_a, col_b, col_c, col_d = st.columns([1, 1, 1, 1.2], gap="medium")
     with col_a:
@@ -225,11 +339,36 @@ def _render_command_bar(candidate: dict, jd: dict, selected_id: str) -> None:
         if st.button("进入 AI 面试", use_container_width=True):
             st.session_state["selected_candidate_id"] = selected_id
             st.session_state["risk_selected_candidate"] = selected_id
+            update_candidate(selected_id, "status", "interview_pack_ready")
             st.session_state["active_tab"] = "interview_eval"
             st.session_state["_nav_radio"] = "interview_eval"
             st.rerun()
     with col_d:
         st.caption("HR 使用建议：先看顶部结论，再处理右侧核验清单。证据明细只在需要复核时展开。")
+
+    action_a, action_b, action_c, action_d = st.columns(4, gap="medium")
+    with action_a:
+        if st.button("推送 HR 电话初面", use_container_width=True):
+            update_candidate(selected_id, "status", "phone_screen_pending")
+            st.success("已推送 HR 电话初面待办")
+            st.rerun()
+    with action_b:
+        if st.button("电话初面通过", use_container_width=True):
+            update_candidate(selected_id, "status", "phone_screen_passed")
+            st.success("已记录电话初面通过")
+            st.rerun()
+    with action_c:
+        if st.button("生成面试包", use_container_width=True):
+            update_candidate(selected_id, "status", "interview_pack_ready")
+            st.session_state["selected_candidate_id"] = selected_id
+            st.session_state["active_tab"] = "interview_eval"
+            st.session_state["_nav_radio"] = "interview_eval"
+            st.rerun()
+    with action_d:
+        if st.button("暂不推进", use_container_width=True):
+            update_candidate(selected_id, "status", "rejected_by_risk")
+            st.warning("已标记为风险暂不推进")
+            st.rerun()
 
 
 def _render_report(candidate: dict) -> None:
@@ -613,6 +752,59 @@ def _batch_background_stats(candidates: list[dict]) -> dict:
     return {"ready": len(candidates), "clear": clear, "abnormal": abnormal, "pending": pending}
 
 
+def _filter_candidates_by_job(candidates: list[dict], job_filter: str) -> list[dict]:
+    if job_filter == "当前岗位":
+        return candidates
+    filtered = []
+    for candidate in candidates:
+        text = _candidate_text(candidate)
+        if job_filter == "工程师/技术岗" and any(k in text for k in ("工程师", "技术", "研发", "软件", "机械", "自动化", "电气")):
+            filtered.append(candidate)
+        elif job_filter == "制造/工艺岗" and any(k in text for k in ("制造", "工艺", "生产", "现场", "设备", "机械")):
+            filtered.append(candidate)
+        elif job_filter == "质量/IE方向" and any(k in text for k in ("质量", "IE", "SPC", "8D", "Minitab", "FMEA")):
+            filtered.append(candidate)
+        elif job_filter == "职能/非技术岗" and any(k in text for k in ("采购", "财务", "人力", "法务", "计划", "仓储", "营销")):
+            filtered.append(candidate)
+        elif job_filter == "高风险复核池" and _candidate_has_risk_signal(candidate):
+            filtered.append(candidate)
+    return filtered
+
+
+def _candidate_text(candidate: dict) -> str:
+    return " ".join(map(str, [
+        candidate.get("resume_file"),
+        candidate.get("resume_text"),
+        candidate.get("resume_parsed"),
+        candidate.get("match_result"),
+        candidate.get("risk_report"),
+        candidate.get("tags"),
+    ]))
+
+
+def _candidate_has_risk_signal(candidate: dict) -> bool:
+    report = candidate.get("risk_report") or {}
+    if report.get("level") in {"高", "中"}:
+        return True
+    return any(word in _candidate_text(candidate) for word in ("经历断层", "证书过期", "信息存疑", "技能存疑", "频繁跳槽", "异常"))
+
+
+def _job_title_for_filter(jd: dict, job_filter: str) -> str:
+    title = jd.get("title", "当前岗位")
+    return title if job_filter == "当前岗位" else f"{job_filter} · {title}"
+
+
+def _background_brief(candidate: dict) -> dict:
+    items = _background_items(candidate, (candidate.get("risk_report") or {}).get("risks") or [])
+    abnormal = [item["name"] for item in items if item.get("tone") == "danger"]
+    pending = [item["name"] for item in items if item.get("tone") == "warning"]
+    if abnormal:
+        return {"label": "存在异常", "detail": "、".join(abnormal[:2]), "tone": "danger"}
+    if pending:
+        return {"label": "待补充核验", "detail": "、".join(pending[:2]), "tone": "warning"}
+    return {"label": "未发现异常", "detail": "身份、履历、学历等通过", "tone": "success"}
+
+
 def _score(value) -> int:
     try:
         return max(0, min(100, int(round(float(value)))))
@@ -650,6 +842,20 @@ def _batch_reason(score: int, level: str, risks: list[dict], match: dict) -> str
     if match.get("gap_points"):
         return f"匹配差距明显：{match.get('gap_points')[0]}"
     return "匹配度偏低，建议暂缓推进"
+
+
+def _batch_snapshot(row: dict, tags: list[str]) -> str:
+    """One short, scan-friendly sentence for the batch list; evidence stays in drilldown."""
+    level = row.get("风险等级", "未核验")
+    if level == "高":
+        return "存在重点疑点，建议先复核风险与材料。"
+    if level == "中":
+        return "可带问题推进，面试前需完成重点核验。"
+    if level == "低":
+        return "风险可控，可进入下一步面试或电话初面。"
+    if tags:
+        return f"待核验：{tags[0]}。"
+    return "尚未完成风险扫描。"
 
 
 def _batch_tags(candidate: dict, risks: list[dict]) -> list[str]:
@@ -816,6 +1022,10 @@ def _inject_risk_styles() -> None:
             padding:16px 18px; background:#fff; border:1px solid var(--border);
             border-radius:14px; margin:6px 0 12px;
         }
+        .b-flow { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 12px; }
+        .flow-pill { display:inline-flex; align-items:center; min-height:30px; padding:6px 10px; border-radius:999px; border:1px solid var(--border); background:#fff; color:var(--text-3); font-size:12px; font-weight:650; }
+        .flow-pill.done { background:var(--success-bg); color:var(--success); border-color:#bbf7d0; }
+        .flow-pill.current { background:var(--brand-50); color:var(--brand); border-color:var(--brand-100); }
         .batch-hero {
             display:grid; grid-template-columns:minmax(0,1fr) 280px; gap:18px; align-items:stretch;
             padding:18px; background:#fff; border:1px solid var(--border); border-radius:14px; margin:6px 0 14px;
@@ -837,13 +1047,54 @@ def _inject_risk_styles() -> None:
         .batch-bg-strip small { display:block; color:var(--text-2); font-size:12px; margin-top:4px; }
         .batch-bg-states { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:6px; }
         .candidate-list-head { color:var(--text); font-size:15px; font-weight:700; margin:16px 0 8px; }
+        .candidate-list-columns {
+            display:grid; grid-template-columns:23.5% 37% 1fr; gap:8px;
+            color:var(--text-3); font-size:12px; font-weight:650; padding:0 10px 7px;
+        }
+        .candidate-batch-cell {
+            min-height:78px; display:flex; align-items:center;
+            padding:12px; background:#fff; border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+        }
+        .candidate-batch-cell:first-child { border-left:1px solid var(--border); border-radius:10px 0 0 10px; }
+        .candidate-summary { border-left:0; }
+        .candidate-person { gap:10px; }
+        .candidate-number {
+            width:24px; height:24px; flex:0 0 24px; display:flex; align-items:center; justify-content:center;
+            border-radius:7px; background:var(--surface-3); color:var(--text-2); font-size:12px; font-weight:720;
+        }
         .candidate-row {
             background:#fff; border:1px solid var(--border); border-radius:12px;
             padding:13px 15px; margin-top:8px;
         }
+        .candidate-row.compact { padding:0; border:none; background:transparent; margin-top:0; }
         .candidate-name { color:var(--text); font-size:16px; font-weight:730; line-height:1.2; }
         .candidate-reason { color:var(--text-2); font-size:13px; line-height:1.45; margin-top:5px; }
+        .candidate-reason-one-line { overflow:hidden; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; }
         .candidate-tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:9px; }
+        .candidate-tags-tight { margin-top:0; }
+        .candidate-backcheck {
+            background:#fff; border:1px solid var(--border); border-radius:12px; padding:12px 14px; min-height:110px;
+        }
+        .candidate-backcheck span { display:block; color:var(--text-3); font-size:12px; margin-bottom:6px; }
+        .candidate-backcheck strong { display:block; font-size:15px; line-height:1.25; }
+        .candidate-backcheck strong.danger { color:var(--danger); }
+        .candidate-backcheck strong.warning { color:var(--warning); }
+        .candidate-backcheck strong.success { color:var(--success); }
+        .candidate-backcheck small { display:block; color:var(--text-2); font-size:12px; margin-top:6px; line-height:1.45; }
+        .candidate-drilldown-title { color:var(--text); font-size:18px; font-weight:730; line-height:1.25; margin:4px 0 6px; }
+        .background-result-banner {
+            display:grid; grid-template-columns:120px minmax(0,1fr); column-gap:12px; row-gap:3px;
+            padding:15px 16px; border:1px solid var(--border); border-radius:12px; background:#fff; margin:6px 0 14px;
+        }
+        .background-result-banner span { color:var(--text-3); font-size:12px; grid-row:span 2; padding-top:3px; }
+        .background-result-banner strong { font-size:17px; line-height:1.3; }
+        .background-result-banner small { color:var(--text-2); font-size:12px; line-height:1.5; }
+        .background-result-banner.success { border-color:#a7f3d0; }
+        .background-result-banner.success strong { color:var(--success); }
+        .background-result-banner.warning { border-color:#fde68a; }
+        .background-result-banner.warning strong { color:var(--warning); }
+        .background-result-banner.danger { border-color:#fecaca; }
+        .background-result-banner.danger strong { color:var(--danger); }
         .risk-eyebrow { font-size:12px; color:var(--text-3); margin-bottom:4px; }
         .risk-name { font-size:22px; color:var(--text); font-weight:720; line-height:1.2; }
         .risk-meta { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:8px; font-size:13px; color:var(--text-2); }
@@ -926,6 +1177,12 @@ def _inject_risk_styles() -> None:
           .risk-kpi-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
           .closure-grid { grid-template-columns:1fr; }
           .risk-check-list.compact { grid-template-columns:1fr; }
+          .candidate-backcheck { min-height:unset; }
+          .candidate-list-columns { display:none; }
+          .candidate-batch-cell { min-height:unset; border:1px solid var(--border); border-radius:10px; margin-top:6px; }
+          .candidate-summary { margin-top:0; }
+          .background-result-banner { grid-template-columns:1fr; }
+          .background-result-banner span { grid-row:auto; }
         }
         </style>
         """,
