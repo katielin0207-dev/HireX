@@ -1,0 +1,182 @@
+[
+  {
+    "id": "python_backend",
+    "category": "工程师/技术岗",
+    "title": "Python 后端开发工程师",
+    "dept": "研发中心",
+    "location": "青岛",
+    "level": "P6",
+    "count": 3,
+    "source_url": "https://job.hisense.com/mock/python_backend",
+    "hard": {
+      "degree": "本科",
+      "min_years": 3,
+      "must_skills": ["Python", "FastAPI", "MySQL", "Redis"],
+      "nice_skills": ["Kubernetes", "微服务", "Kafka"]
+    },
+    "soft": ["技术钻研", "沟通协作", "学习能力"],
+    "recommended_weights": {"degree": 0.15, "years": 0.15, "skills": 0.45, "soft": 0.25},
+    "recommended_thresholds": {"pass": 80, "hold": 60},
+    "jd_text": "# Python 后端开发工程师\n\n## 岗位职责\n- 参与家电云平台后端服务架构设计与编码\n- 负责核心业务模块（订单/设备/推送）的接口开发\n- 优化服务性能与稳定性\n- 与前端 / 移动端协作打通端到端链路\n\n## 学历与经验要求\n- 本科及以上，计算机 / 软件工程相关专业\n- 3 年以上 Python 后端开发经验\n\n## 必备技能\n- 精通 Python，熟悉 FastAPI / Django\n- 熟悉 MySQL / Redis\n\n## 加分技能\n- 熟悉 Kubernetes / 微服务架构\n- 有 Kafka 等消息中间件经验\n\n## 软实力要求\n- 技术钻研精神、良好沟通、快速学习"
+  },
+  {
+    "id": "ml_engineer",
+    "category": "工程师/技术岗",
+    "title": "算法工程师",
+    "dept": "研发中心",
+    "location": "青岛",
+    "level": "P6",
+    "count": 2,
+    "source_url": "https://job.hisense.com/mock/ml_engineer",
+    "hard": {
+      "degree": "硕士",
+      "min_years": 2,
+      "must_skills": ["Python", "PyTorch", "机器学习", "深度学习"],
+      "nice_skills": ["CV", "NLP", "推荐系统"]
+    },
+    "soft": ["学术钻研", "工程落地", "沟通协作"],
+    "recommended_weights": {"degree": 0.25, "years": 0.10, "skills": 0.45, "soft": 0.20},
+    "recommended_thresholds": {"pass": 82, "hold": 65},
+    "jd_text": "# 算法工程师\n\n## 岗位职责\n- 智能家电场景（推荐 / CV / 语音）算法研发\n- 从模型设计、训练、评估到线上部署全流程\n- 与业务、工程团队协作把模型落到产品\n\n## 学历与经验要求\n- 硕士及以上，计算机 / 数学 / AI 相关专业\n- 2 年以上算法研发经验（含实习）\n\n## 必备技能\n- 精通 Python 与 PyTorch/TensorFlow\n- 扎实的机器学习/深度学习基础\n\n## 加分技能\n- CV / NLP / 推荐系统 任一方向的实战经验\n\n## 软实力要求\n- 学术钻研 + 工程落地能力"
+  },
+  {
+    "id": "frontend_dev",
+    "category": "工程师/技术岗",
+    "title": "前端开发工程师",
+    "dept": "研发中心",
+    "location": "青岛",
+    "level": "P5",
+    "count": 2,
+    "source_url": "https://job.hisense.com/mock/frontend_dev",
+    "hard": {
+      "degree": "本科",
+      "min_years": 2,
+      "must_skills": ["JavaScript", "TypeScript", "React", "HTML/CSS"],
+      "nice_skills": ["Vue", "Webpack", "小程序"]
+    },
+    "soft": ["用户视角", "视觉审美", "沟通协作"],
+    "recommended_weights": {"degree": 0.15, "years": 0.15, "skills": 0.45, "soft": 0.25},
+    "recommended_thresholds": {"pass": 78, "hold": 60},
+    "jd_text": "# 前端开发工程师\n\n## 岗位职责\n- 负责家电云控制台/H5 页面开发\n- 与设计师、后端协作，把设计稿高保真落地\n\n## 学历与经验要求\n- 本科及以上，2 年以上前端经验\n\n## 必备技能\n- 精通 JavaScript/TypeScript\n- 熟练 React（含 Hooks / 状态管理）\n\n## 加分技能\n- Vue / 小程序 / Webpack 工程化经验\n\n## 软实力要求\n- 用户视角、视觉审美、沟通协作"
+  },
+  {
+    "id": "smt_process",
+    "category": "制造/工艺岗",
+    "title": "SMT 工艺工程师",
+    "dept": "制造中心",
+    "location": "青岛",
+    "level": "P5",
+    "count": 2,
+    "source_url": "https://job.hisense.com/mock/smt_process",
+    "hard": {
+      "degree": "本科",
+      "min_years": 3,
+      "must_skills": ["SMT", "PCBA", "工艺参数优化", "AOI"],
+      "nice_skills": ["DFM", "六西格玛"]
+    },
+    "soft": ["现场落地", "跨部门协调", "抗压能力"],
+    "recommended_weights": {"degree": 0.15, "years": 0.25, "skills": 0.40, "soft": 0.20},
+    "recommended_thresholds": {"pass": 76, "hold": 58},
+    "jd_text": "# SMT 工艺工程师\n\n## 岗位职责\n- 负责 SMT 产线工艺参数设定与优化\n- PCBA 焊接不良分析与改善\n- 新产品 DFM 评审与试产导入\n\n## 学历与经验要求\n- 本科及以上，机电 / 电子相关专业\n- 3 年以上 SMT 工艺经验\n\n## 必备技能\n- 熟悉 SMT 全流程、PCBA 生产工艺\n- 会用 AOI 数据做工艺优化\n\n## 加分技能\n- DFM 设计评审经验、六西格玛\n\n## 软实力要求\n- 现场落地力、跨部门协调、抗压"
+  },
+  {
+    "id": "assembly_engineer",
+    "category": "制造/工艺岗",
+    "title": "整机装配工程师",
+    "dept": "制造中心",
+    "location": "青岛",
+    "level": "P4",
+    "count": 1,
+    "source_url": "https://job.hisense.com/mock/assembly_engineer",
+    "hard": {
+      "degree": "本科",
+      "min_years": 2,
+      "must_skills": ["整机装配", "SOP", "生产节拍", "工装夹具"],
+      "nice_skills": ["自动化产线", "MES"]
+    },
+    "soft": ["动手能力", "责任心", "沟通协作"],
+    "recommended_weights": {"degree": 0.15, "years": 0.20, "skills": 0.40, "soft": 0.25},
+    "recommended_thresholds": {"pass": 75, "hold": 58},
+    "jd_text": "# 整机装配工程师\n\n## 岗位职责\n- 制定并优化整机装配 SOP\n- 平衡生产节拍与工位分配\n- 工装夹具设计选型与验证\n\n## 学历与经验要求\n- 本科及以上，机械 / 工业工程相关\n- 2 年以上整机装配经验\n\n## 必备技能\n- 熟悉整机装配流程、SOP 编写\n- 生产节拍平衡、工装夹具选型\n\n## 加分技能\n- 自动化产线 / MES 系统经验\n\n## 软实力要求\n- 动手能力、责任心、沟通协作"
+  },
+  {
+    "id": "qa_engineer",
+    "category": "质量/IE 方向",
+    "title": "质量工程师",
+    "dept": "质量部",
+    "location": "青岛",
+    "level": "P5",
+    "count": 2,
+    "source_url": "https://job.hisense.com/mock/qa_engineer",
+    "hard": {
+      "degree": "本科",
+      "min_years": 3,
+      "must_skills": ["ISO 9001", "8D", "FMEA", "SPC"],
+      "nice_skills": ["六西格玛绿带", "APQP"]
+    },
+    "soft": ["沟通协作", "数据分析", "抗压能力"],
+    "recommended_weights": {"degree": 0.20, "years": 0.20, "skills": 0.40, "soft": 0.20},
+    "recommended_thresholds": {"pass": 80, "hold": 60},
+    "jd_text": "# 质量工程师\n\n## 岗位职责\n- 产品全生命周期质量管控\n- 供应商审核与来料检验\n- 8D 报告输出与不良品分析\n- 推动 FMEA / SPC 落地\n\n## 学历与经验要求\n- 本科及以上，质量管理/机械/工业工程相关\n- 3 年以上制造业质量岗位经验\n\n## 必备技能\n- 熟悉 ISO 9001\n- 熟练 8D、FMEA、SPC\n\n## 加分技能\n- 六西格玛绿带、APQP 经验\n\n## 软实力要求\n- 跨部门沟通、数据分析、抗压"
+  },
+  {
+    "id": "ie_engineer",
+    "category": "质量/IE 方向",
+    "title": "IE 工程师",
+    "dept": "工业工程部",
+    "location": "青岛",
+    "level": "P5",
+    "count": 1,
+    "source_url": "https://job.hisense.com/mock/ie_engineer",
+    "hard": {
+      "degree": "本科",
+      "min_years": 2,
+      "must_skills": ["ECRS", "工时分析", "产线平衡", "精益生产"],
+      "nice_skills": ["MOD 法", "价值流分析"]
+    },
+    "soft": ["数据敏感", "沟通协调", "持续改善"],
+    "recommended_weights": {"degree": 0.15, "years": 0.15, "skills": 0.45, "soft": 0.25},
+    "recommended_thresholds": {"pass": 76, "hold": 58},
+    "jd_text": "# IE 工程师\n\n## 岗位职责\n- 主导产线工时测量与平衡\n- 用 ECRS / 精益工具持续改善\n- 参与新品导入的产线布局设计\n\n## 学历与经验要求\n- 本科及以上，工业工程相关\n- 2 年以上 IE 岗位经验\n\n## 必备技能\n- 熟练 ECRS、工时分析、产线平衡\n- 精益生产理念与工具\n\n## 加分技能\n- MOD 法、价值流分析（VSM）\n\n## 软实力要求\n- 数据敏感、沟通协调、持续改善"
+  },
+  {
+    "id": "supply_chain",
+    "category": "职能/非技术岗",
+    "title": "供应链专员",
+    "dept": "供应链",
+    "location": "青岛",
+    "level": "P4",
+    "count": 1,
+    "source_url": "https://job.hisense.com/mock/supply_chain",
+    "hard": {
+      "degree": "本科",
+      "min_years": 2,
+      "must_skills": ["MRP", "ERP", "Excel", "SAP"],
+      "nice_skills": ["Power BI", "SQL"]
+    },
+    "soft": ["沟通协调", "数据敏感", "抗压能力"],
+    "recommended_weights": {"degree": 0.20, "years": 0.20, "skills": 0.35, "soft": 0.25},
+    "recommended_thresholds": {"pass": 78, "hold": 60},
+    "jd_text": "# 供应链专员\n\n## 岗位职责\n- 物料需求计划（MRP）编制与滚动更新\n- 对接供应商，跟踪订单履约\n- 分析库存周转、优化呆滞料\n\n## 学历与经验要求\n- 本科及以上，供应链/物流/工业工程相关\n- 2 年以上供应链或采购经验\n\n## 必备技能\n- 熟悉 MRP / ERP，用过 SAP\n- Excel 熟练（透视表、函数）\n\n## 加分技能\n- Power BI / SQL 数据分析\n\n## 软实力要求\n- 沟通协调、数据敏感、抗压"
+  },
+  {
+    "id": "hr_specialist",
+    "category": "职能/非技术岗",
+    "title": "HR 招聘专员",
+    "dept": "人力资源",
+    "location": "青岛",
+    "level": "P4",
+    "count": 1,
+    "source_url": "https://job.hisense.com/mock/hr_specialist",
+    "hard": {
+      "degree": "本科",
+      "min_years": 2,
+      "must_skills": ["招聘全流程", "简历筛选", "面试技巧", "招聘渠道运营"],
+      "nice_skills": ["猎头合作", "雇主品牌"]
+    },
+    "soft": ["共情能力", "沟通表达", "抗压能力"],
+    "recommended_weights": {"degree": 0.15, "years": 0.20, "skills": 0.35, "soft": 0.30},
+    "recommended_thresholds": {"pass": 76, "hold": 60},
+    "jd_text": "# HR 招聘专员\n\n## 岗位职责\n- 承接业务线招聘需求\n- 简历筛选、初面、Offer 沟通\n- 招聘渠道运营与数据复盘\n\n## 学历与经验要求\n- 本科及以上，人力资源相关优先\n- 2 年以上企业招聘经验\n\n## 必备技能\n- 熟悉招聘全流程与常用工具（Boss/智联/内推）\n- 具备结构化面试能力\n\n## 加分技能\n- 猎头合作 / 雇主品牌运营经验\n\n## 软实力要求\n- 共情能力、沟通表达、抗压"
+  }
+]

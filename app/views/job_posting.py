@@ -10,6 +10,7 @@ from app.shared.job_utils import (
     _split_csv,
     _legacy_weights,
 )
+from app.ui import page_header, section
 from app.ui.theme import TOKENS
 
 SYSTEM_JD = "你是资深 HR 招聘专家，善于把岗位描述拆解为结构化任职要求。只输出 JSON。"
@@ -111,9 +112,8 @@ def _apply_form_seed():
 
 
 def render():
-    """岗位投放页主渲染：任职信息 → 已有 JD 拆解 → 权重分数线 → 生成 JD。"""
-    st.header("岗位投放")
-    st.subheader("岗位任职要求")
+    """岗位投放页主渲染：任职信息 → 已有 JD 拆解 → 生成 JD → 编辑发布。"""
+    page_header("岗位投放", "填写任职要求 → AI 生成 JD → 编辑发布", "📌")
 
     _apply_form_seed()
 
@@ -143,6 +143,15 @@ def render():
     _init("jd_raw", jd.get("raw_text", ""))
     _init("_jd_editor_visible", False)
 
+    # ── 基本岗位信息 ────────────────────────────────────────
+    head_L, head_R = st.columns([4, 1])
+    with head_L:
+        section("基本岗位信息", "正式环境从北森读取；Demo 可用示例数据一键填充")
+    with head_R:
+        if st.button("📥 用 Demo 数据", key="btn_seed_mock", use_container_width=True):
+            st.session_state["_jd_form_seed"] = dict(_MOCK_BASICS)
+            st.rerun()
+
     r1a, r1b, r1c = st.columns(3)
     with r1a:
         st.text_input("岗位", key="jd_position", placeholder="例：质量工程师")
@@ -160,8 +169,8 @@ def render():
     st.text_input("学历要求", key="jd_degree", placeholder="例：本科 / 硕士")
     st.text_area("基本任职要求（一句话概述岗位内容）", key="jd_base_req", height=68)
 
-    st.divider()
-
+    # ── 技能与软实力 ────────────────────────────────────────
+    section("技能与软实力", "AI 会根据下面这几项生成完整招聘 JD")
     r4a, r4b = st.columns(2)
     with r4a:
         st.text_input("必备技能（逗号分隔）", key="jd_must",
@@ -201,8 +210,8 @@ def render():
                         s.update(label="已拆解，表单已自动填充", state="complete")
                         st.rerun()
 
-    st.divider()
-
+    # ── 生成 JD ─────────────────────────────────────────────
+    section("生成招聘 JD 描述", "调 LLM 把上面结构化信息扩写为 5 段文案")
     if st.button("📝 生成JD描述", type="primary", key="gen_jd_final"):
         basics = {
             "position": st.session_state["jd_position"].strip(),
@@ -247,6 +256,7 @@ def render():
         jd = load_jd() or {}
         jd_text = jd.get("jd_text_generated", "")
         if jd_text:
+            section("最终 JD 文案", "可手工微调后一键发布")
             req = jd.get("requirements", {})
             h = req.get("hard", {})
             basics = jd.get("basics", {}) or {}
