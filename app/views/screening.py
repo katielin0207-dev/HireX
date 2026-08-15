@@ -29,6 +29,7 @@ from app.shared.job_utils import (
 from app.shared.jobs import (
     load_job, jobs_in_category, JOB_CATEGORIES,
 )
+from app.shared.interview import generate_interview_questions
 from app.ui import section
 from app.ui.theme import score_tone, TOKENS
 
@@ -519,10 +520,8 @@ def _render_candidate_card(c: dict, job: dict,
                     st.markdown("**全部匹配点**：" + "、".join(matched))
                 if gap:
                     st.markdown("**全部差距点**：" + "、".join(gap))
-            # TODO(面试模块对接)：把 disabled 去掉，改成 st.popover 或跳转到面试页
-            st.button("🤖 面试例题 · 即将上线",
-                      key=f"interview_placeholder_{c['id']}_{job_id}",
-                      use_container_width=True, disabled=True)
+            with st.popover("🤖 面试例题", use_container_width=True):
+                _render_interview_questions(c, job, mr)
 
         ac1, ac2, ac3 = st.columns([2, 3, 1])
         cur = mr.get("screen_decision", "待审核")
@@ -565,6 +564,69 @@ def _render_candidate_card(c: dict, job: dict,
                 else:
                     st.info(f"已记录：{decision}")
                 st.rerun()
+
+
+# ────────────────────────────────────────────────────────────
+# UI · 面试例题（首次打开自动生成，结果写回候选人档案缓存）
+# ────────────────────────────────────────────────────────────
+_POOL_LABEL = {"doubt": "疑点核查", "role": "专业技术",
+               "common": "软实力", "closing": "收尾"}
+
+
+def _render_interview_questions(c: dict, job: dict, mr: dict) -> None:
+    """按「岗位 JD + 候选人简历 + 匹配疑点」生成面试题；已生成则直接读缓存。"""
+    job_id = job["id"]
+    qs = mr.get("interview_questions")
+
+    if not qs:
+        with st.spinner("生成面试例题中（结合 JD + 简历 + 疑点）..."):
+            try:
+                qs = (generate_interview_questions(job, c, mr)
+                      .get("questions", []))
+            except Exception as e:
+                st.error(f"面试题生成失败：{e}")
+                return
+        if not qs:
+            st.warning("LLM 未返回题目，请重试")
+            return
+        cand = load_candidate(c["id"])
+        mj = cand.get("matched_jobs") or {}
+        sub = mj.get(job_id, {}) or {}
+        sub["interview_questions"] = qs
+        mj[job_id] = sub
+        cand["matched_jobs"] = mj
+        save_candidate(cand)
+
+    total_min = sum(int(q.get("expectedMinutes", 5) or 5) for q in qs)
+    st.markdown(f"**{c.get('name', c['id'])} · {job['title']} 面试题**")
+    st.caption(f"共 {len(qs)} 题 · 预计 {total_min} 分钟 · 由 JD + 简历 + 疑点动态生成")
+    for i, q in enumerate(qs, 1):
+        pool = _POOL_LABEL.get(q.get("pool"), q.get("pool", ""))
+        st.markdown(
+            f"**Q{i}【{pool} · {q.get('competency', '')}】** {q.get('question', '')}")
+        fus = q.get("followUps") or []
+        if fus:
+            st.markdown("🔎 追问：" + "；".join(fus))
+        anchors = q.get("anchors") or {}
+        if anchors:
+            st.markdown(
+                f"📏 锚点 — 5分：{anchors.get('5', '')} ｜ "
+                f"3分：{anchors.get('3', '')} ｜ 1分：{anchors.get('1', '')}")
+        rf = q.get("redFlags") or []
+        if rf:
+            st.markdown("🚩 红旗：" + "；".join(rf))
+        if i < len(qs):
+            st.divider()
+
+    if st.button("🔄 重新生成", key=f"regen_iq_{c['id']}_{job_id}"):
+        cand = load_candidate(c["id"])
+        mj = cand.get("matched_jobs") or {}
+        sub = mj.get(job_id, {}) or {}
+        sub.pop("interview_questions", None)
+        mj[job_id] = sub
+        cand["matched_jobs"] = mj
+        save_candidate(cand)
+        st.rerun()
 
 
 # ────────────────────────────────────────────────────────────
