@@ -229,6 +229,16 @@ def render_jd_section():
                   placeholder="例：本科 / 硕士")
     st.text_area("基本任职要求（一句话概述岗位内容）", key="jd_base_req", height=68)
 
+    st.divider()
+
+    r4a, r4b = st.columns(2)
+    with r4a: st.text_input("必备技能（逗号分隔）", key="jd_must",
+                            placeholder="例：ISO 9001, 8D, FMEA")
+    with r4b: st.text_input("加分技能（逗号分隔，不参与权重）",
+                            key="jd_nice", placeholder="例：六西格玛, APQP")
+    st.text_input("软实力要求（逗号分隔）", key="jd_soft",
+                  placeholder="例：沟通协作, 数据分析, 抗压能力")
+
     with st.expander("▼ 已有 JD？粘贴一键拆解自动填充", expanded=False):
         st.text_area(
             "岗位 JD 原文", key="jd_raw", height=140,
@@ -257,16 +267,6 @@ def render_jd_section():
                         }
                         s.update(label="已拆解，表单已自动填充", state="complete")
                         st.rerun()
-
-    st.divider()
-
-    r4a, r4b = st.columns(2)
-    with r4a: st.text_input("必备技能（逗号分隔）", key="jd_must",
-                            placeholder="例：ISO 9001, 8D, FMEA")
-    with r4b: st.text_input("加分技能（逗号分隔，不参与权重）",
-                            key="jd_nice", placeholder="例：六西格玛, APQP")
-    st.text_input("软实力要求（逗号分隔）", key="jd_soft",
-                  placeholder="例：沟通协作, 数据分析, 抗压能力")
 
     st.divider()
 
