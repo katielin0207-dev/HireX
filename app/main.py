@@ -81,7 +81,7 @@ st.markdown(
     <div class="top-shell">
       <div class="top-brand">
         <span class="brand-mark">HX</span>
-        <div><strong>HireX · 海信招聘甄选智能体</strong><small>海信容声 · 企业招聘决策工作台</small></div>
+        <div><strong>HireX · 海信招聘甄选智能体</strong><small>岗位千万条，匹配第一条。</small></div>
       </div>
       <div class="top-actions">
         <span class="mock-dot"></span><span>演示数据已连接</span>
