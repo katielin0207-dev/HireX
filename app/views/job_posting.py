@@ -141,6 +141,7 @@ def render():
     _init("jd_nice", "，".join(h0.get("nice_skills", [])))
     _init("jd_soft", "，".join(req0.get("soft", [])))
     _init("jd_raw", jd.get("raw_text", ""))
+    _init("_jd_editor_visible", False)
 
     r1a, r1b, r1c = st.columns(3)
     with r1a:
@@ -237,45 +238,42 @@ def render():
             "jd_text_generated": jd_text,
             "raw_text": st.session_state.get("jd_raw", ""),
         })
+        st.session_state["_jd_editor_visible"] = True
         st.success("已生成 JD 描述，可在下方查看并编辑")
         st.rerun()
 
-    # 生成后直接在按钮下方展示最终 JD 描述，可编辑保存
+    # 生成后直接在按钮下方展示最终 JD 描述，可编辑发布
+    if st.session_state.get("_jd_editor_visible"):
         jd = load_jd() or {}
-    jd_text = jd.get("jd_text_generated", "")
-    if jd_text:
-        req = jd.get("requirements", {})
-        h = req.get("hard", {})
-        basics = jd.get("basics", {}) or {}
-        must_preview = "、".join(h.get("must_skills", [])[:3]) or "—"
-        line1 = " · ".join(x for x in [
-            f"**{basics.get('position') or req.get('title', '岗位')}**",
-            basics.get("dept") or None,
-            (f"招聘 {basics.get('count')} 人" if basics.get("count") else None),
-            basics.get("level") or None,
-            basics.get("location") or None,
-        ] if x)
-        line2 = " · ".join([
-            f"学历 {h.get('degree', '—')}",
-            f"≥{int(h.get('min_years', 0) or 0)} 年",
-            f"必备：{must_preview}",
-        ])
-        st.caption(line1)
-        st.caption(line2)
+        jd_text = jd.get("jd_text_generated", "")
+        if jd_text:
+            req = jd.get("requirements", {})
+            h = req.get("hard", {})
+            basics = jd.get("basics", {}) or {}
+            must_preview = "、".join(h.get("must_skills", [])[:3]) or "—"
+            line1 = " · ".join(x for x in [
+                f"**{basics.get('position') or req.get('title', '岗位')}**",
+                basics.get("dept") or None,
+                (f"招聘 {basics.get('count')} 人" if basics.get("count") else None),
+                basics.get("level") or None,
+                basics.get("location") or None,
+            ] if x)
+            line2 = " · ".join([
+                f"学历 {h.get('degree', '—')}",
+                f"≥{int(h.get('min_years', 0) or 0)} 年",
+                f"必备：{must_preview}",
+            ])
+            st.caption(line1)
+            st.caption(line2)
 
-        edited = st.text_area(
-            "招聘文案（Markdown，可编辑）",
-            value=jd_text,
-            height=320,
-            key="jd_text_edit",
-        )
-        c1, c2 = st.columns([1, 5])
-        with c1:
-            if st.button("💾 保存 JD", key="save_jd_text"):
+            edited = st.text_area(
+                "招聘文案（Markdown，可编辑）",
+                value=jd_text,
+                height=320,
+                key="jd_text_edit",
+            )
+            if st.button("💾 发布JD", key="save_jd_text"):
                 jd["jd_text_generated"] = edited
                 save_jd(jd)
-                st.success("已保存")
+                st.success("已发布 JD")
                 st.rerun()
-        with c2:
-            with st.expander("预览渲染效果", expanded=False):
-                st.markdown(edited)
