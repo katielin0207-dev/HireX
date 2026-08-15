@@ -45,6 +45,7 @@ from app.views import analysis as view_analysis
 from app.views import interview as view_interview
 from app.views import report as view_report
 from app.views import screening as view_screening
+from app.views import job_posting as view_job_posting
 
 inject_theme()
 
@@ -62,7 +63,7 @@ DEFAULTS = {
     "tts_error": "", "tts_notice": "",   # 语音失败/降级提示，由侧边栏消费后清空
     "digital_human_enabled": True,
     "n_rounds": settings.DEFAULT_SAMPLE_ROUNDS,
-    "active_tab": "screening", "ui_lang": "zh",
+    "active_tab": "job_posting", "ui_lang": "zh",
     "interview_link_info": None,   # 面试链接信息 {token, link, ...}
     "voice_input_text": "",        # 语音识别的文本
 }
@@ -804,6 +805,10 @@ def _render_candidate_chat(agent, token, deactivate_interview):
 # ── 三个主页面：只做路由，渲染在 app/views/ ────────────
 # ★ 改造前这三个函数各自几百行，全部挤在 main.py（2156 行）里，
 #   页头 HTML（含同一张 5KB base64 logo）被复制了三份。
+def tab_job_posting():
+    view_job_posting.render()
+
+
 def tab_screening():
     view_screening.render()
 
@@ -862,7 +867,9 @@ st.markdown(f"""
 #   `active_tab` 里存的旧中文标签就再也匹配不上任何选项 —— 切语言会把
 #   用户踢回首页。分离之后，语言和导航状态互不影响。
 NAV = [
-    # ★ MVP 主链路入口：A 的简历筛选模块（已完成）
+    # ★ 岗位投放：JD 任职要求 + 四维权重 + 分数线（由 A 维护）
+    ("job_posting", "📌 岗位投放"),
+    # ★ MVP 主链路入口：简历筛选结果（由 A 维护）
     ("screening", "📋 简历筛选"),
     # ── 基座原有页面（analysis/interview/report/skills）：MVP 阶段隐藏，
     #    避免 demo 暴露未完成的基座能力；B/C 模块完成后在此追加各自入口 ──
@@ -885,7 +892,9 @@ active = st.radio("导航", nav_keys,
     key="_nav_radio", horizontal=True, label_visibility="collapsed")
 st.session_state.active_tab = active
 
-if active == "screening":
+if active == "job_posting":
+    tab_job_posting()
+elif active == "screening":
     tab_screening()
 elif active == "analysis":
     tab_resume_analysis()
