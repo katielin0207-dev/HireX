@@ -219,13 +219,6 @@ def render_jd_section():
         f"margin:6px 0 4px'>Step 1 · 基本岗位信息</div>",
         unsafe_allow_html=True,
     )
-    top_L, top_R = st.columns([5, 1])
-    with top_L:
-        st.caption("正式环境这些字段从北森读取；Demo 可用示例数据一键填充。")
-    with top_R:
-        if st.button("📥 用 Demo 数据", key="btn_seed_mock", use_container_width=True):
-            st.session_state["_jd_form_seed"] = dict(_MOCK_BASICS)
-            st.rerun()
 
     r1a, r1b, r1c = st.columns(3)
     with r1a: st.text_input("岗位", key="jd_position",
