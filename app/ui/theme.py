@@ -29,6 +29,9 @@ TOKENS = {
     "danger-bg":    "#fef2f2",
     "info":         "#0284c7",
     "info-bg":      "#f0f9ff",
+    # 输入框浅蓝色边框
+    "input-blue":   "#93c5fd",
+    "input-blue-bg":"#f0f9ff",
     # 中性
     "text":         "#0f172a",
     "text-2":       "#475569",
@@ -122,6 +125,21 @@ h1, h2, h3, h4 { color: var(--text); font-weight: 650; letter-spacing: -0.01em; 
 p, li, span, label { color: var(--text-2); }
 a { color: var(--brand); }
 
+/* ── 全局字号 +5px：覆盖 Streamlit 原生控件 ─────────────── */
+html, body, .stApp { font-size: 16px; }
+h1 { font-size: 37px !important; line-height: 1.2 !important; }
+h2 { font-size: 29px !important; line-height: 1.25 !important; }
+h3 { font-size: 25px !important; line-height: 1.3 !important; }
+h4 { font-size: 22px !important; line-height: 1.35 !important; }
+[data-testid="stWidgetLabel"] { font-size: 19px !important; color: var(--text) !important; }
+.stCaption, [data-testid="stCaption"] { font-size: 17px !important; }
+[data-testid="stMarkdownContainer"] p { font-size: 18px !important; line-height: 1.65 !important; }
+[data-testid="stTextInput"] input,
+[data-testid="stNumberInput"] input,
+[data-testid="stTextArea"] textarea { font-size: 18px !important; }
+[data-testid="stSelectbox"] > div,
+[data-testid="stMultiSelect"] > div { font-size: 18px !important; }
+
 /* ── 页头 ──────────────────────────────────────────── */
 .pg-head {
     display: flex; align-items: center; gap: 14px;
@@ -135,10 +153,10 @@ a { color: var(--brand); }
     width: 42px; height: 42px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
     background: var(--brand); color: #fff;
-    border-radius: 11px; font-size: 20px;
+    border-radius: 11px; font-size: 25px;
 }
-.pg-head .pg-title { font-size: 20px; font-weight: 680; color: var(--text); line-height: 1.25; }
-.pg-head .pg-sub   { font-size: 13px; color: var(--text-2); margin-top: 3px; }
+.pg-head .pg-title { font-size: 25px; font-weight: 680; color: var(--text); line-height: 1.25; }
+.pg-head .pg-sub   { font-size: 18px; color: var(--text-2); margin-top: 3px; }
 
 /* ── 区块标题 ───────────────────────────────────────── */
 .sec-head {
@@ -146,14 +164,14 @@ a { color: var(--brand); }
     margin: 26px 0 12px;
 }
 .sec-head .sec-title {
-    font-size: 15px; font-weight: 650; color: var(--text);
+    font-size: 25px; font-weight: 650; color: var(--text);
     position: relative; padding-left: 11px;
 }
 .sec-head .sec-title::before {
     content: ""; position: absolute; left: 0; top: 3px; bottom: 3px;
     width: 3px; border-radius: 2px; background: var(--brand);
 }
-.sec-head .sec-desc { font-size: 12px; color: var(--text-3); }
+.sec-head .sec-desc { font-size: 17px; color: var(--text-3); }
 
 /* ── 结论横幅（结论先行）────────────────────────────── */
 .verdict {
@@ -164,12 +182,12 @@ a { color: var(--brand); }
 }
 .verdict .v-bar { width: 4px; align-self: stretch; border-radius: 3px; }
 .verdict .v-main { flex: 1; min-width: 0; }
-.verdict .v-label { font-size: 12px; color: var(--text-3); letter-spacing: .04em; }
-.verdict .v-text  { font-size: 19px; font-weight: 680; margin-top: 2px; }
-.verdict .v-why   { font-size: 13px; color: var(--text-2); margin-top: 6px; line-height: 1.55; }
+.verdict .v-label { font-size: 17px; color: var(--text-3); letter-spacing: .04em; }
+.verdict .v-text  { font-size: 24px; font-weight: 680; margin-top: 2px; }
+.verdict .v-why   { font-size: 18px; color: var(--text-2); margin-top: 6px; line-height: 1.55; }
 .verdict .v-score { text-align: center; flex-shrink: 0; padding-left: 18px; border-left: 1px solid var(--border); }
-.verdict .v-num   { font-size: 34px; font-weight: 720; line-height: 1; }
-.verdict .v-unit  { font-size: 13px; color: var(--text-3); }
+.verdict .v-num   { font-size: 39px; font-weight: 720; line-height: 1; }
+.verdict .v-unit  { font-size: 18px; color: var(--text-3); }
 
 /* ── 指标网格 ───────────────────────────────────────── */
 .stat-grid { display: grid; gap: 12px; margin: 14px 0 4px; }
@@ -177,16 +195,16 @@ a { color: var(--brand); }
     background: var(--surface); border: 1px solid var(--border);
     border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow);
 }
-.stat-card .sc-label { font-size: 12px; color: var(--text-3); margin-bottom: 5px; }
-.stat-card .sc-value { font-size: 21px; font-weight: 680; color: var(--text); line-height: 1.15; }
-.stat-card .sc-hint  { font-size: 11px; color: var(--text-3); margin-top: 4px; }
+.stat-card .sc-label { font-size: 17px; color: var(--text-3); margin-bottom: 5px; }
+.stat-card .sc-value { font-size: 26px; font-weight: 680; color: var(--text); line-height: 1.15; }
+.stat-card .sc-hint  { font-size: 16px; color: var(--text-3); margin-top: 4px; }
 
 /* ── 评分条 ─────────────────────────────────────────── */
 .bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
-.bar-row .br-label { width: 76px; flex-shrink: 0; font-size: 13px; color: var(--text-2); }
+.bar-row .br-label { width: 76px; flex-shrink: 0; font-size: 18px; color: var(--text-2); }
 .bar-row .br-track { flex: 1; height: 7px; background: var(--surface-3); border-radius: 4px; overflow: hidden; }
 .bar-row .br-fill  { height: 100%; border-radius: 4px; transition: width .45s ease; }
-.bar-row .br-value { width: 42px; text-align: right; font-size: 13px; font-weight: 620; }
+.bar-row .br-value { width: 42px; text-align: right; font-size: 18px; font-weight: 620; }
 
 /* ── 题卡 ───────────────────────────────────────────── */
 .q-card {
@@ -195,10 +213,10 @@ a { color: var(--brand); }
     border-radius: var(--radius); padding: 13px 16px; margin-bottom: 9px;
     box-shadow: var(--shadow);
 }
-.q-card .q-text { font-size: 14px; color: var(--text); line-height: 1.55; font-weight: 520; }
+.q-card .q-text { font-size: 24px; color: var(--text); line-height: 1.55; font-weight: 520; }
 .q-card .q-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-top: 9px; }
 .q-card .q-intent {
-    font-size: 12px; color: var(--text-2); margin-top: 8px;
+    font-size: 17px; color: var(--text-2); margin-top: 8px;
     padding-top: 8px; border-top: 1px dashed var(--border); line-height: 1.5;
 }
 
@@ -206,7 +224,7 @@ a { color: var(--brand); }
 .pill {
     display: inline-flex; align-items: center; gap: 4px;
     padding: 2px 9px; border-radius: 999px;
-    font-size: 11px; font-weight: 600; line-height: 1.7;
+    font-size: 16px; font-weight: 600; line-height: 1.7;
     border: 1px solid transparent; white-space: nowrap;
 }
 .pill.success { color: var(--success); background: var(--success-bg); border-color: #a7f3d0; }
@@ -218,7 +236,7 @@ a { color: var(--brand); }
 /* ── 证据列表 ───────────────────────────────────────── */
 .ev-item {
     display: flex; gap: 9px; padding: 9px 12px; margin-bottom: 6px;
-    border-radius: 8px; font-size: 13px; line-height: 1.55;
+    border-radius: 8px; font-size: 18px; line-height: 1.55;
     border: 1px solid transparent;
 }
 .ev-item .ev-icon { flex-shrink: 0; }
@@ -234,16 +252,16 @@ a { color: var(--brand); }
     border-radius: var(--radius-lg);
 }
 .empty .em-icon  { font-size: 40px; opacity: .5; }
-.empty .em-title { font-size: 15px; font-weight: 620; color: var(--text); margin-top: 12px; }
-.empty .em-desc  { font-size: 13px; color: var(--text-2); margin-top: 6px; line-height: 1.6; }
+.empty .em-title { font-size: 25px; font-weight: 620; color: var(--text); margin-top: 12px; }
+.empty .em-desc  { font-size: 18px; color: var(--text-2); margin-top: 6px; line-height: 1.6; }
 
 /* ── 步骤条 ─────────────────────────────────────────── */
 .steps { display: flex; align-items: center; gap: 0; margin: 4px 0 18px; }
-.steps .stp { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text-3); }
+.steps .stp { display: flex; align-items: center; gap: 7px; font-size: 17px; color: var(--text-3); }
 .steps .stp .dot {
     width: 20px; height: 20px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: 700;
+    font-size: 16px; font-weight: 700;
     background: var(--surface-3); color: var(--text-3);
     border: 1px solid var(--border);
 }
@@ -255,7 +273,7 @@ a { color: var(--brand); }
 
 /* ── 键值行 ─────────────────────────────────────────── */
 .kv { display: flex; justify-content: space-between; align-items: baseline;
-      padding: 6px 0; font-size: 13px; border-bottom: 1px dashed var(--border); }
+      padding: 6px 0; font-size: 18px; border-bottom: 1px dashed var(--border); }
 .kv:last-child { border-bottom: none; }
 .kv .k { color: var(--text-3); }
 .kv .v { color: var(--text); font-weight: 600; }
@@ -266,14 +284,14 @@ a { color: var(--brand); }
     position: absolute; font-weight: 720; line-height: 1;
     display: flex; flex-direction: column; align-items: center;
 }
-.ring-wrap .ring-cap { font-size: 11px; color: var(--text-3); font-weight: 500; margin-top: 3px; }
+.ring-wrap .ring-cap { font-size: 16px; color: var(--text-3); font-weight: 500; margin-top: 3px; }
 
 /* ── Streamlit 原生控件微调 ─────────────────────────── */
 [data-testid="stSidebar"] { background: var(--surface); border-right: 1px solid var(--border); }
 [data-testid="stSidebar"] .block-container { padding-top: 1.2rem; }
 
 .stButton > button {
-    border-radius: 8px; font-weight: 600; font-size: 13px;
+    border-radius: 8px; font-weight: 600; font-size: 18px;
     border: 1px solid var(--border-2); transition: all .15s ease;
 }
 .stButton > button:hover { border-color: var(--brand); color: var(--brand); }
@@ -310,7 +328,7 @@ a { color: var(--brand); }
     min-height: 36px;
     padding: 0 6px !important;
     display: flex; align-items: center; justify-content: center;
-    font-size: 12.5px; line-height: 1; white-space: nowrap;
+    font-size: 17.5px; line-height: 1; white-space: nowrap;
 }
 /* 内层 <p> 自带 margin/line-height，会把字符顶偏 —— 必须一起清掉,
    只在 button 上设 flex 居中是不够的。 */
@@ -345,15 +363,33 @@ a { color: var(--brand); }
 }
 [data-testid="stFileUploader"]:hover { border-color: var(--brand); }
 
+/* ── 输入框浅蓝色边框 ───────────────────────────────── */
+[data-testid="stTextInput"],
+[data-testid="stNumberInput"],
+[data-testid="stTextArea"] {
+    background: var(--input-blue-bg);
+    border: 1px solid var(--input-blue);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+[data-testid="stTextInput"]:focus-within,
+[data-testid="stNumberInput"]:focus-within,
+[data-testid="stTextArea"]:focus-within {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, .10);
+}
+
 .streamlit-expanderHeader, [data-testid="stExpander"] summary {
-    font-size: 13px; font-weight: 600; color: var(--text);
+    font-size: 18px; font-weight: 600; color: var(--text);
 }
 [data-testid="stExpander"] {
     background: var(--surface); border: 1px solid var(--border);
     border-radius: var(--radius); box-shadow: var(--shadow);
 }
 
-[data-testid="stMetricValue"] { font-size: 22px; font-weight: 680; }
+[data-testid="stMetricValue"] { font-size: 27px; font-weight: 680; }
 
 /* ── 顶部品牌条 ─────────────────────────────────────── */
 .brand-bar {
@@ -367,10 +403,10 @@ a { color: var(--brand); }
     width: 26px; height: 26px; border-radius: 7px;
     background: var(--brand); color: #fff;
     display: flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: 700; letter-spacing: .02em;
+    font-size: 16px; font-weight: 700; letter-spacing: .02em;
 }
-.brand-bar .brand-name { font-size: 15px; font-weight: 680; color: var(--text); }
-.brand-bar .brand-flow { display: flex; align-items: center; gap: 7px; font-size: 12px; }
+.brand-bar .brand-name { font-size: 25px; font-weight: 680; color: var(--text); }
+.brand-bar .brand-flow { display: flex; align-items: center; gap: 7px; font-size: 17px; }
 .brand-bar .flow-step  { color: var(--text-3); }
 .brand-bar .flow-arrow { color: var(--border-2); }
 
@@ -384,7 +420,7 @@ div[data-testid="stRadio"] > div[role="radiogroup"] {
 }
 div[data-testid="stRadio"] > div[role="radiogroup"] > label {
     padding: 6px 16px; border-radius: 7px; margin: 0;
-    font-size: 13px; font-weight: 600; color: var(--text-2);
+    font-size: 18px; font-weight: 600; color: var(--text-2);
     cursor: pointer; transition: all .15s ease;
 }
 div[data-testid="stRadio"] > div[role="radiogroup"] > label:hover {
