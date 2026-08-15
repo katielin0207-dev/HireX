@@ -10,8 +10,8 @@ cd "$(dirname "$0")"
 if [ ! -d ".venv" ]; then
     echo "首次运行，创建虚拟环境..."
     python3 -m venv .venv
-    .venv/bin/pip install -r requirements.txt
 fi
+.venv/bin/pip install -q -r requirements.txt
 
 # 检查 .env
 if [ ! -f ".env" ]; then
@@ -23,6 +23,9 @@ fi
 if [ ! -d "mock/resumes" ] || [ -z "$(ls -A mock/resumes 2>/dev/null)" ]; then
     echo "生成 Mock 数据..."
     .venv/bin/python mock/gen_mock_resumes.py
+fi
+if [ ! -f "sessions/jd.json" ] || [ -z "$(ls sessions/candidates/*.json 2>/dev/null)" ]; then
+    echo "生成候选人演示数据..."
     .venv/bin/python mock/gen_mock_candidates.py
 fi
 

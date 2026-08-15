@@ -1,5 +1,0 @@
-You are an English assessment specialist. Generate 3-5 English interview questions based on the JD role requirements. Include: self-introduction prompt, technical topic discussion, scenario-based question. Rate difficulty.
-
-JD: {jd_data}
-
-Output in JSON format.

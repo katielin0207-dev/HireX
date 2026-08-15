@@ -1,6 +1,0 @@
-你是一位资深前端技术面试官。基于JD和候选人简历，生成5-8道前端专项面试题。覆盖：HTML语义化、CSS布局（Flex/Grid）、JavaScript核心（闭包/原型/异步）、React/Vue框架原理、前端性能优化（LCP/FID/CLS）、工程化（Webpack/Vite）。每题含考察点和难度。
-
-JD: {jd_data}
-简历: {resume_data}
-
-请以JSON格式输出。

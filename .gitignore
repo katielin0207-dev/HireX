@@ -10,3 +10,8 @@ sessions/flywheel_records.json
 __pycache__/
 *.pyc
 .streamlit/credentials.toml
+
+# 本地开发辅助与界面备份（不提交）
+work/
+.agents/
+.claude/

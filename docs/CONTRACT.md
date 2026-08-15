@@ -56,6 +56,27 @@
     "form_filled": {}
   },
 
+  "talent_profile": {
+    "version": 1,
+    "jd_signature": "当前JD内容指纹；JD变化后自动重算",
+    "generated_for": {"title": "Python 后端开发工程师"},
+    "categories": [
+      {"key": "job_direction", "label": "岗位方向", "tags": [
+        {"label": "工程师/技术方向", "source": "当前JD + 简历工作经历", "evidence": "原始依据", "reason": "AI判断说明", "confidence": 94}
+      ]},
+      {"key": "professional_skills", "label": "专业技能", "tags": []},
+      {"key": "experience_background", "label": "经验背景", "tags": []},
+      {"key": "general_competency", "label": "通用能力", "tags": []}
+    ],
+    "reuse_priority": {
+      "score": 86.1,
+      "level": "优先联系 | 建议复用 | 培养型储备 | 暂不推荐",
+      "hard_gate": true,
+      "components": {"当前JD匹配": 91, "历史面试": 90, "证据完整度": 100},
+      "explanation": "当前岗位复用优先级计算说明"
+    }
+  },
+
   "status": "new | screened | risk_checked | interviewed | in_pool | offered | declined",
   "tags": ["Python", "3年经验", "RAG"],
   "updated_at": "2026-08-15T10:00:00"
@@ -71,6 +92,7 @@
 | `match_result` | B | D、E |
 | `risk_report` | C | D、E |
 | `interview_eval` | D | E |
+| `talent_profile` | E（入库或JD变化时自动生成） | E；其他模块可选读 |
 | `status / tags` | B/C/D 都可更新 | E |
 | `updated_at` | 谁写谁更新 | 全员 |
 

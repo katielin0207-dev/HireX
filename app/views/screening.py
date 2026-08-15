@@ -21,6 +21,7 @@
 import os
 import re
 import streamlit as st
+from app.ui import page_header, section
 
 from app.shared import (
     call_llm,
@@ -74,7 +75,7 @@ def parse_jd(raw_text: str) -> dict:
 
 def render_jd_section():
     """JD 输入 / 结构化 / 编辑 / 权重。"""
-    st.subheader("① 岗位 JD 与筛选要求")
+    section("岗位JD与筛选要求", "AI生成结构化要求，HR与用人部门共同编辑确认")
 
     jd = load_jd() or {}
     default_text = jd.get("raw_text", "")
@@ -164,7 +165,7 @@ def parse_resume(text: str) -> dict:
 
 def render_resume_library():
     """从 mock 库批量导入 + 新上传，解析后写入候选人文件。"""
-    st.subheader("② 简历库导入")
+    section("简历库导入", "支持模拟历史人才库与本次新投递简历")
 
     files = sorted(f for f in os.listdir(RESUMES_DIR) if f.endswith(".txt"))
     options = {f: _infer_name(f) for f in files}
@@ -392,7 +393,7 @@ def render_screening():
     weights = jd.get("weights", {"hard": 0.6, "soft": 0.4})
     hard_w, soft_w = weights["hard"], weights["soft"]
 
-    st.subheader("③ 批量筛选")
+    section("批量智能筛选", "硬性规则保证稳定，AI负责软性素质和证据总结")
     if st.button("🚀 开始筛选（硬性规则 + 软性 LLM）", type="primary", key="run_screen"):
         if demo_mode_enabled():
             cached = load_demo_cache("screening_batch")
@@ -417,7 +418,7 @@ def render_screening():
         [c for c in candidates if c.get("match_result")],
         key=lambda c: c["match_result"]["overall_score"], reverse=True)
     if ranked:
-        st.subheader("④ 候选人匹配排名")
+        section("候选人匹配排名", "分别展示硬性分、软性分和综合推荐结论")
         rows = []
         for c in ranked:
             mr = c["match_result"]
@@ -430,16 +431,12 @@ def render_screening():
                 "状态": c.get("status", "new"),
             })
         df = __import__("pandas").DataFrame(rows)
-        # 颜色：总分>=80绿 60-79黄 <60红
-        def _color(v):
-            return ("background-color: #dcfce7" if v >= 80
-                    else "background-color: #fef9c3" if v >= 60
-                    else "background-color: #fee2e2")
-        styled = df.style.applymap(_color, subset=["总分"])
-        st.dataframe(styled, use_container_width=True, hide_index=True)
+        # Streamlit 1.x 与 pandas 3 的 Styler 接口不兼容，MVP 直接展示原始表格，
+        # 避免排名主链路因纯视觉着色失败。
+        st.dataframe(df, use_container_width=True, hide_index=True)
 
         # 用人部门审核
-        st.subheader("⑤ 用人部门审核与推送")
+        section("用人部门审核与推送", "人工确认通过、待定或不通过，并把备注推送给HR")
         st.caption("查看匹配评价后，选择是否通过筛选；通过者将推送 HR 进行电话初面。")
         for c in ranked:
             mr = c["match_result"]
@@ -486,9 +483,21 @@ def render_screening():
 # 页面入口
 # ────────────────────────────────────────────────────────────
 def render():
-    st.header("简历筛选（AI 智能甄选）")
+    _styles()
+    page_header("简历筛选", "从岗位要求到批量排名，让每一个分数都有明确依据", "▣")
     render_jd_section()
-    st.divider()
     render_resume_library()
-    st.divider()
     render_screening()
+
+
+def _styles():
+    st.markdown(
+        """
+        <style>
+        [data-testid="stTextArea"], [data-testid="stTextInput"], [data-testid="stNumberInput"]{
+            background:rgba(255,255,255,.72);border-radius:14px;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )

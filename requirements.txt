@@ -1,40 +1,6 @@
-# AI 智能招聘系统 v2.2 — 依赖
-# 五层架构: Harness / Graph DAG / Checker Loop / Skills / Flywheel
+# HireX MVP 运行依赖
 streamlit>=1.28.0
+pandas>=1.4,<3
 httpx>=0.27.0
 python-dotenv>=1.0.0
-PyMuPDF>=1.24.0
-pdfplumber>=0.11.0
-python-docx>=1.1.0
-pydantic>=2.6.0
 plotly>=5.18.0
-edge-tts>=6.1.0
-nest-asyncio>=1.5.0
-websocket-client>=1.8.0
-Pillow>=10.0.0
-rapidocr-onnxruntime>=1.2.0          # OCR：扫描件/图片型 PDF（可选，见下）
-#
-# ★ 关于 OCR：只有「没有文本层」的 PDF 才会走到它（parser 三级降级的第 3 级）。
-#   不装也能跑 —— 仓库自带的 test_resumes/*.txt 无需 OCR。
-#
-#   Windows 上装了却报
-#     ImportError: DLL load failed while importing onnxruntime_pybind11_state
-#   是宿主机 VC++ 运行库的问题，装包解决不了：System32 的 msvcp140.dll 被
-#   某些安装程序覆盖回旧版（实测 14.00.24215.1，而同机 vcruntime140_1.dll
-#   已是 14.50），而 onnxruntime 需要 ≥14.4x。
-#   修法：重装「Microsoft Visual C++ 2015-2022 x64 可再发行组件包」。
-#
-#   另外 app/parser.py 顶部刻意把 onnxruntime 放在 import fitz 之前 ——
-#   PyMuPDF 会先把旧 msvcp140 锁进进程，顺序反了 OCR 就静默失效。改那段前先读注释。
-#
-chromadb>=0.5.0                      # 飞轮向量库（可选，见下）
-#
-# ★ 关于向量检索：飞轮默认走【内置向量索引】（纯 Python，n-gram 哈希
-#   embedding + 余弦相似度），无需任何原生扩展，装不装 chromadb 都能跑。
-#   要启用 chromadb 的 HNSW，设环境变量 FLYWHEEL_VECTOR_BACKEND=chroma。
-#
-#   为什么不默认用 chromadb：在 Python 3.13 + Windows 上实测，
-#   chromadb 1.5.9 会在 collection.add 处【段错误】（持久化/内存客户端都一样），
-#   而段错误会直接杀掉 Streamlit 进程且 try/except 拦不住；
-#   降到 0.5.x 又没有 3.13 的预编译轮子，要现场编译 chroma-hnswlib。
-#   Python 3.11/3.12 环境下 chromadb 正常，可放心开启。

@@ -16,10 +16,10 @@ import streamlit as st
 # 语义化命名。不要在组件里写死颜色，一律引用这里。
 TOKENS = {
     # 品牌
-    "brand":        "#4f46e5",
-    "brand-600":    "#4338ca",
-    "brand-50":     "#eef2ff",
-    "brand-100":    "#e0e7ff",
+    "brand":        "#009b91",
+    "brand-600":    "#007f78",
+    "brand-50":     "#edf9f7",
+    "brand-100":    "#d8f1ee",
     # 语义色
     "success":      "#059669",
     "success-bg":   "#ecfdf5",
@@ -30,19 +30,19 @@ TOKENS = {
     "info":         "#0284c7",
     "info-bg":      "#f0f9ff",
     # 中性
-    "text":         "#0f172a",
-    "text-2":       "#475569",
-    "text-3":       "#94a3b8",
+    "text":         "#173e58",
+    "text-2":       "#607684",
+    "text-3":       "#91a2ab",
     "surface":      "#ffffff",
-    "surface-2":    "#f8fafc",
-    "surface-3":    "#f1f5f9",
-    "border":       "#e2e8f0",
-    "border-2":     "#cbd5e1",
+    "surface-2":    "#f5f8f8",
+    "surface-3":    "#edf3f3",
+    "border":       "#dde8e9",
+    "border-2":     "#cadbdc",
     # 形状
-    "radius":       "10px",
-    "radius-lg":    "14px",
-    "shadow":       "0 1px 2px rgba(15,23,42,.04), 0 1px 3px rgba(15,23,42,.06)",
-    "shadow-md":    "0 4px 6px -1px rgba(15,23,42,.07), 0 2px 4px -2px rgba(15,23,42,.05)",
+    "radius":       "14px",
+    "radius-lg":    "20px",
+    "shadow":       "0 4px 14px rgba(23,62,88,.055)",
+    "shadow-md":    "0 10px 28px rgba(23,62,88,.075)",
 }
 
 # 面试题五个维度的配色，题卡与统计图共用一套
@@ -51,7 +51,7 @@ DIMENSION_COLORS = {
     "项目深挖":   "#059669",
     "场景设计":   "#d97706",
     "行为面试":   "#db2777",
-    "模糊点追问": "#7c3aed",
+    "模糊点追问": "#167f83",
 }
 
 
@@ -105,7 +105,7 @@ html, body, [class*="css"], .stApp {
                  "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
     color: var(--text);
 }
-.stApp { background: var(--surface-2); }
+.stApp { background: #f7f9f9; }
 
 /* ★ padding-top 必须留出 Streamlit 自带顶栏的高度。
    实测：[data-testid="stHeader"] 高 60px、position:absolute、z-index 999990，
@@ -113,10 +113,18 @@ html, body, [class*="css"], .stApp {
    品牌条的 top 就落到 35px —— 正好钻到顶栏底下被盖住，
    而顶栏是 absolute 定位在滚动容器顶部的，所以**往上滑也露不出来**，
    表现为"那几行字只有一半"。60px + 呼吸空间 = 4.75rem。 */
-.block-container { padding-top: 4.75rem; padding-bottom: 3rem; max-width: 1320px; }
+.block-container { padding-top: .7rem; padding-bottom: 2rem; max-width: 1540px; }
+
+/* 主页面只保留真实内容之间的间距。主题样式和0高滚动脚本不应制造空白。 */
+.stMainBlockContainer > [data-testid="stVerticalBlock"] { gap: .6rem; }
+.stMainBlockContainer > [data-testid="stVerticalBlock"] > [data-testid="stElementContainer"]:has(style),
+.stMainBlockContainer > [data-testid="stVerticalBlock"] > [data-testid="stElementContainer"][height="0px"] {
+    display: none !important;
+}
 
 /* 顶栏本身也对齐一下配色，否则白条压在浅灰页面上有一道明显的色差 */
-[data-testid="stHeader"] { background: var(--surface-2); }
+[data-testid="stHeader"] { display:none!important; }
+[data-testid="stSidebar"], [data-testid="collapsedControl"] { display:none!important; }
 
 h1, h2, h3, h4 { color: var(--text); font-weight: 650; letter-spacing: -0.01em; }
 p, li, span, label { color: var(--text-2); }
@@ -125,19 +133,19 @@ a { color: var(--brand); }
 /* ── 页头 ──────────────────────────────────────────── */
 .pg-head {
     display: flex; align-items: center; gap: 14px;
-    padding: 18px 22px; margin-bottom: 18px;
-    background: linear-gradient(135deg, #ffffff 0%, var(--brand-50) 100%);
+    padding: 20px 24px; margin: 18px 0 18px;
+    background: #ffffff;
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow-md);
 }
 .pg-head .pg-icon {
     width: 42px; height: 42px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
     background: var(--brand); color: #fff;
-    border-radius: 11px; font-size: 20px;
+    border-radius: 13px; font-size: 20px;
 }
-.pg-head .pg-title { font-size: 20px; font-weight: 680; color: var(--text); line-height: 1.25; }
+.pg-head .pg-title { font-size: 22px; font-weight: 760; color: var(--text); line-height: 1.25; }
 .pg-head .pg-sub   { font-size: 13px; color: var(--text-2); margin-top: 3px; }
 
 /* ── 区块标题 ───────────────────────────────────────── */
@@ -172,13 +180,13 @@ a { color: var(--brand); }
 .verdict .v-unit  { font-size: 13px; color: var(--text-3); }
 
 /* ── 指标网格 ───────────────────────────────────────── */
-.stat-grid { display: grid; gap: 12px; margin: 14px 0 4px; }
+.stat-grid { display: grid; gap: 16px; margin: 16px 0 6px; }
 .stat-card {
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow);
+    border-radius: 18px; padding: 18px 20px; box-shadow: var(--shadow);
 }
 .stat-card .sc-label { font-size: 12px; color: var(--text-3); margin-bottom: 5px; }
-.stat-card .sc-value { font-size: 21px; font-weight: 680; color: var(--text); line-height: 1.15; }
+.stat-card .sc-value { font-size: 26px; font-weight: 760; color: var(--text); line-height: 1.15; }
 .stat-card .sc-hint  { font-size: 11px; color: var(--text-3); margin-top: 4px; }
 
 /* ── 评分条 ─────────────────────────────────────────── */
@@ -212,7 +220,7 @@ a { color: var(--brand); }
 .pill.success { color: var(--success); background: var(--success-bg); border-color: #a7f3d0; }
 .pill.warning { color: var(--warning); background: var(--warning-bg); border-color: #fde68a; }
 .pill.danger  { color: var(--danger);  background: var(--danger-bg);  border-color: #fecaca; }
-.pill.brand   { color: var(--brand);   background: var(--brand-50);   border-color: #c7d2fe; }
+.pill.brand   { color: var(--brand);   background: var(--brand-50);   border-color: #b9e4df; }
 .pill.neutral { color: var(--text-2);  background: var(--surface-3);  border-color: var(--border); }
 
 /* ── 证据列表 ───────────────────────────────────────── */
@@ -273,8 +281,14 @@ a { color: var(--brand); }
 [data-testid="stSidebar"] .block-container { padding-top: 1.2rem; }
 
 .stButton > button {
-    border-radius: 8px; font-weight: 600; font-size: 13px;
+    border-radius: 11px; font-weight: 650; font-size: 13px;
     border: 1px solid var(--border-2); transition: all .15s ease;
+    min-height: 40px; padding-left: 12px; padding-right: 12px;
+}
+.stButton > button, .stButton > button * {
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+    overflow-wrap: normal !important;
 }
 .stButton > button:hover { border-color: var(--brand); color: var(--brand); }
 .stButton > button[kind="primary"],
@@ -295,16 +309,7 @@ a { color: var(--brand); }
     border-color: var(--border) !important; cursor: not-allowed;
 }
 
-/* ── 侧边栏里的小动作按钮（Skills 的 停用 / 激活）─────────────
-   原来点不中，是三件事叠加的：
-     1. 按钮所在列只占 1/8 宽（st.columns([2,5,1])），侧边栏本来就窄,
-        算下来实际可点区域只有十几像素；
-     2. Streamlit 的按钮内层是 <p>，继承了全局 p 的行高与 margin，
-        单字符 ✕ 在盒子里偏上，看着"不居中"；
-     3. 图标按钮本身就比文字按钮难点 —— 已把 ✕/＋ 换成「停用」「激活」,
-        既是更大的点击目标，也不用猜 ✕ 是停用还是删除。
-   列宽已在 integration.py 调整，这里负责让按钮把列吃满并真正居中。
-   min-height 36px 对着鼠标绰绰有余，也不至于把侧边栏撑得太松。 */
+/* 侧边栏动作按钮 */
 [data-testid="stSidebar"] .stButton > button {
     width: 100%;
     min-height: 36px;
@@ -312,75 +317,99 @@ a { color: var(--brand); }
     display: flex; align-items: center; justify-content: center;
     font-size: 12.5px; line-height: 1; white-space: nowrap;
 }
-/* 内层 <p> 自带 margin/line-height，会把字符顶偏 —— 必须一起清掉,
-   只在 button 上设 flex 居中是不够的。 */
 [data-testid="stSidebar"] .stButton > button p {
     margin: 0 !important; padding: 0 !important; line-height: 1 !important;
 }
-/* hover 给个底色，让"我正指在这颗按钮上"看得见 —— 窄侧边栏里相邻按钮
-   挨得近，只靠文字变色不够明显。刻意不用红色：停用可以再激活，不是
-   破坏性动作，红色留给真正的删除（在「🧩 Skills」页）。 */
 [data-testid="stSidebar"] .stButton > button:hover {
     background: var(--surface-3);
 }
 
 [data-testid="stFileUploader"] {
     background: var(--surface); border: 1px dashed var(--border-2);
-    border-radius: var(--radius); padding: 6px 12px;
+    border-radius: 16px; padding: 10px 14px;
 }
 [data-testid="stFileUploader"]:hover { border-color: var(--brand); }
+
+/* 选中标签使用品牌紫色时，强制保持白字，避免被全局文字色覆盖。 */
+[data-testid="stMultiSelect"] [data-baseweb="tag"],
+[data-testid="stMultiSelect"] [data-baseweb="tag"] span {
+    color: #fff !important;
+}
+[data-testid="stMultiSelect"] [data-baseweb="tag"] svg { fill: #fff !important; }
 
 .streamlit-expanderHeader, [data-testid="stExpander"] summary {
     font-size: 13px; font-weight: 600; color: var(--text);
 }
 [data-testid="stExpander"] {
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); box-shadow: var(--shadow);
+    border-radius: 16px; box-shadow: var(--shadow);
 }
 
 [data-testid="stMetricValue"] { font-size: 22px; font-weight: 680; }
 
-/* ── 顶部品牌条 ─────────────────────────────────────── */
-.brand-bar {
+/* ── 顶部产品栏 ─────────────────────────────────────── */
+.top-shell {
     display: flex; align-items: center; justify-content: space-between;
-    gap: 16px; padding: 10px 18px; margin-bottom: 12px;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); box-shadow: var(--shadow);
+    gap: 24px; padding: 16px 20px 14px; margin-bottom: 0;
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 13px 13px 0 0; box-shadow: var(--shadow);
+    border-bottom-color:#edf3f3;
 }
-.brand-bar .brand-left { display: flex; align-items: center; gap: 10px; }
-.brand-bar .brand-mark {
-    width: 26px; height: 26px; border-radius: 7px;
+.top-brand { display:flex;align-items:center;gap:13px; }
+.top-brand .brand-mark {
+    width: 40px; height: 40px; border-radius: 11px;
     background: var(--brand); color: #fff;
     display: flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: 700; letter-spacing: .02em;
+    font-size: 13px; font-weight: 800; letter-spacing: .04em;
 }
-.brand-bar .brand-name { font-size: 15px; font-weight: 680; color: var(--text); }
-.brand-bar .brand-flow { display: flex; align-items: center; gap: 7px; font-size: 12px; }
-.brand-bar .flow-step  { color: var(--text-3); }
-.brand-bar .flow-arrow { color: var(--border-2); }
+.top-brand strong { display:block;color:var(--text);font-size:24px;line-height:1.18;letter-spacing:-.025em; }
+.top-brand small { display:block;color:var(--text-3);font-size:11px;margin-top:4px; }
+.top-actions { display:flex;align-items:center;gap:8px;color:var(--text-2);font-size:12px; }
+.top-actions b { margin-left:10px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;color:var(--text-2);background:#fff; }
+.mock-dot { width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 4px #dcfce7; }
+.workflow-note { display:none; }
 
 /* ── 主导航：把 radio 变成分段控件 ──────────────────────
    ★ 必须继续用 st.radio 而不是 st.tabs()：实测 tabs 无法用代码切换，
      而"查看评估报告"这类按钮需要跳到别的页。问题从来不是选错组件，
      而是它默认长得像一组单选框。 */
-div[data-testid="stRadio"] > div[role="radiogroup"] {
-    gap: 4px; background: var(--surface-3); padding: 4px;
-    border-radius: 10px; display: inline-flex;
+div[data-testid="stRadio"]:has([data-testid="stRadioGroup"][aria-label="主流程"]) {
+    width:100%!important;box-sizing:border-box;
+    background:#fff;border:1px solid var(--border);border-top:0;border-radius:0 0 13px 13px;
+    padding:7px 12px 9px;margin-bottom:10px;box-shadow:0 8px 20px rgba(23,62,88,.06);
 }
-div[data-testid="stRadio"] > div[role="radiogroup"] > label {
-    padding: 6px 16px; border-radius: 7px; margin: 0;
-    font-size: 13px; font-weight: 600; color: var(--text-2);
+div[data-testid="stRadio"]:has([data-testid="stRadioGroup"][aria-label="主流程"]) > div[role="radiogroup"] {
+    gap: 4px; background: transparent; padding: 0;
+    border-radius: 9px; display: flex; width:100%;
+}
+div[data-testid="stElementContainer"]:has(> div[data-testid="stRadio"] [aria-label="主流程"]) {
+    width:100%!important;
+}
+div[data-testid="stRadio"]:has([data-testid="stRadioGroup"][aria-label="主流程"]) [data-testid="stRadioOption"] {
+    flex:0 0 auto;padding: 10px 25px; border-radius: 9px; margin: 0;
+    font-size: 16px; font-weight: 680; color: var(--text-2);
     cursor: pointer; transition: all .15s ease;
 }
-div[data-testid="stRadio"] > div[role="radiogroup"] > label:hover {
-    background: rgba(255,255,255,.7); color: var(--text);
+div[data-testid="stRadio"]:has([data-testid="stRadioGroup"][aria-label="主流程"]) [data-testid="stRadioOption"]:hover {
+    background: var(--brand-50); color: var(--text);
 }
-div[data-testid="stRadio"] > div[role="radiogroup"] > label:has(input:checked) {
-    background: var(--surface); color: var(--brand);
-    box-shadow: var(--shadow);
+div[data-testid="stRadio"]:has([data-testid="stRadioGroup"][aria-label="主流程"]) [data-testid="stRadioOption"][data-selected="true"] {
+    background: var(--brand); color: #fff; box-shadow: none;
 }
+div[data-testid="stRadio"]:has([data-testid="stRadioGroup"][aria-label="主流程"]) [data-testid="stRadioOption"][data-selected="true"] * { color:#fff!important; }
 /* 隐藏原生圆点，只留文字 */
-div[data-testid="stRadio"] > div[role="radiogroup"] > label > div:first-child { display: none; }
+div[data-testid="stRadio"]:has([data-testid="stRadioGroup"][aria-label="主流程"]) [data-testid="stRadioOption"] > div > div > div:first-child { display:none!important; }
+
+/* 每个模块只有一张主工作区卡片，岗位筛选、页签和业务内容都收进来。 */
+[class*="st-key-hirex_workspace_"] {
+    background:#fff;
+    border:1px solid var(--border)!important;
+    border-radius:18px!important;
+    box-shadow:0 10px 30px rgba(23,62,88,.07)!important;
+}
+[class*="st-key-hirex_workspace_"] > [data-testid="stVerticalBlock"] {
+    gap:.65rem;
+}
 
 /* ── 对话气泡 ───────────────────────────────────────── */
 [data-testid="stChatMessage"] {
@@ -391,6 +420,17 @@ div[data-testid="stRadio"] > div[role="radiogroup"] > label > div:first-child { 
 [data-testid="stChatMessage"] p { color: var(--text); line-height: 1.65; }
 
 hr { border-color: var(--border); margin: 20px 0; }
+
+[data-testid="stDataFrame"], [data-testid="stPlotlyChart"] {
+    background:#fff;border:1px solid var(--border);border-radius:18px;
+    box-shadow:var(--shadow);overflow:hidden;padding:4px;
+}
+
+@media(max-width:900px){
+  .top-actions{display:none}.workflow-note{text-align:left}.block-container{padding-left:1rem;padding-right:1rem}
+  div[data-testid="stRadio"]:has([data-testid="stRadioGroup"][aria-label="主流程"]) > div[role="radiogroup"]{display:flex;overflow-x:auto}
+  div[data-testid="stRadio"]:has([data-testid="stRadioGroup"][aria-label="主流程"]) [data-testid="stRadioOption"]{padding:8px 12px;white-space:nowrap}
+}
 </style>
 """
 

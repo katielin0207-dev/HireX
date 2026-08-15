@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-AI 智能招聘系统 - 一键启动
+"""HireX 招聘甄选 AI 智能体一键启动。
 
 Usage:
   1. Copy .env.example to .env and fill in your LLM_API_KEY
@@ -8,10 +7,7 @@ Usage:
   3. python run.py
   4. Open http://127.0.0.1:8501 in browser
 
-功能：
-  · 简历分析 Tab — JD+简历解析 / 匹配度评分 / 试题生成 / 模糊点追问
-  · AI面试 Tab — 面试官角色扮演 / 多轮对话 / TTS语音 / 数字人
-  · 评估报告 Tab — 5维雷达图 / 逐题评审 / 录用建议
+主流程：简历筛选 → 风险核验 → 面试辅助 → 人才评价
 """
 import sys
 import os
@@ -53,7 +49,7 @@ def main():
         sys.exit(1)
 
     print("=" * 60)
-    print("  AI 智能招聘系统 v2.0")
+    print("  HireX 招聘甄选 AI 智能体")
     print("=" * 60)
     print(f"  Model: {settings.LLM_MODEL}")
     print(f"  URL:   http://{settings.HOST}:{settings.PORT}")
