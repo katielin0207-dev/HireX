@@ -483,16 +483,15 @@ def render_screening():
 
                 sync_col, interview_col = st.columns(2)
                 with sync_col:
-                    if st.button("同步到智能分析", key=f"sync_risk_{c['id']}", use_container_width=True):
+                    if st.button("进入面试辅助", key=f"sync_risk_{c['id']}", use_container_width=True):
                         cand = load_candidate(c["id"])
-                        cand["status"] = "screened"
+                        cand["status"] = "interview_pack_ready"
                         cand["screen_decision"] = cand.get("screen_decision", "通过筛选")
-                        cand["tags"] = list(dict.fromkeys((cand.get("tags") or []) + ["已同步智能分析"]))
+                        cand["tags"] = list(dict.fromkeys((cand.get("tags") or []) + ["待生成面试评价"]))
                         save_candidate(cand)
-                        st.session_state["risk_selected_candidate"] = c["id"]
                         st.session_state["selected_candidate_id"] = c["id"]
-                        st.session_state["active_tab"] = "risk"
-                        st.session_state["_nav_radio"] = "risk"
+                        st.session_state["active_tab"] = "interview_eval"
+                        st.session_state["_nav_radio"] = "interview_eval"
                         st.rerun()
                 with interview_col:
                     if st.button("进入 AI 面试", key=f"sync_interview_{c['id']}", use_container_width=True):

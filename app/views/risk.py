@@ -17,7 +17,7 @@ _TYPE_LABELS = ["经历断层", "频繁跳槽", "证书过期", "信息存疑", 
 
 def render() -> None:
     _inject_risk_styles()
-    page_header("风险识别", "批量比较候选人的匹配度、风险等级和下一步推进建议", "⚡")
+    page_header("简历疑点与面试追问", "从简历中提取待确认事项，形成 HR 电话初面与结构化面试追问", "⚡")
 
     jd = load_jd()
     candidates = list_candidates()
@@ -68,9 +68,9 @@ def _render_batch_dashboard(jd: dict, candidates: list[dict]) -> str:
         f"""
         <div class="batch-hero">
           <div>
-            <div class="risk-eyebrow">岗位智能分析</div>
+            <div class="risk-eyebrow">简历疑点分析</div>
             <div class="batch-title">{esc(_job_title_for_filter(jd, job_filter))}</div>
-            <div class="batch-sub">批量查看匹配、风险和背调结论；只在选中候选人后再展开复核证据。</div>
+            <div class="batch-sub">批量查看匹配与待确认事项；第三方背调与资质核验统一在“录用前核验”完成。</div>
           </div>
           <div class="batch-best">
             <span>当前首选</span>
@@ -86,14 +86,14 @@ def _render_batch_dashboard(jd: dict, candidates: list[dict]) -> str:
         </div>
         <div class="batch-bg-strip">
           <div>
-            <span class="risk-eyebrow">背调报告概览</span>
-            <strong>{bg["ready"]}/{total} 已形成核验摘要</strong>
-            <small>覆盖身份、犯罪/社会安全、吸毒、网贷、诉讼、商业关联、学历学位</small>
+            <span class="risk-eyebrow">面试追问概览</span>
+            <strong>{verify_count} 人需带问题推进</strong>
+            <small>简历疑点只生成电话初面与结构化面试追问，不等同于第三方背调结论</small>
           </div>
           <div class="batch-bg-states">
-            {pill(f'{bg["abnormal"]} 异常', "danger" if bg["abnormal"] else "success")}
-            {pill(f'{bg["pending"]} 待核验', "warning" if bg["pending"] else "neutral")}
-            {pill(f'{bg["clear"]} 正常', "success")}
+            {pill(f'{high_count} 重点复核', "danger" if high_count else "success")}
+            {pill(f'{verify_count} 待追问', "warning" if verify_count else "neutral")}
+            {pill(f'{proceed_count} 可推进', "success")}
           </div>
         </div>
         """,
@@ -192,8 +192,8 @@ def _render_batch_table(rows: list[dict], candidates: list[dict], jd: dict) -> N
                 if st.button("复核风险", key=f"risk_{cid}", use_container_width=True):
                     _open_candidate_drilldown(cid, "风险")
             with action_3:
-                if st.button("背调结果", key=f"background_{cid}", use_container_width=True):
-                    _open_candidate_drilldown(cid, "背调")
+                if st.button("查看证据", key=f"background_{cid}", use_container_width=True):
+                    _open_candidate_drilldown(cid, "风险")
             with action_4:
                 if st.button("进入面试", key=f"interview_{cid}", type="primary", use_container_width=True):
                     st.session_state["selected_candidate_id"] = cid
@@ -252,6 +252,7 @@ def _render_risk_review(candidate: dict, risks: list[dict], level: str) -> None:
     match = candidate.get("match_result") or {}
     decision = _decision_for(level, risks, match)
     _render_decision_banner(level, risks, decision)
+    _render_risk_evidence_overview(candidate, risks, level)
     col_left, col_right = st.columns([1.25, 1], gap="large")
     with col_left:
         _render_risk_cards(risks)
@@ -263,14 +264,46 @@ def _render_risk_review(candidate: dict, risks: list[dict], level: str) -> None:
 def _render_background_result(candidate: dict, risks: list[dict]) -> None:
     brief = _background_brief(candidate)
     tone_label = {"success": "未发现异常", "warning": "待补充核验", "danger": "存在异常"}
+    report = _background_report(candidate, risks)
     st.markdown(
-        f'''<div class="background-result-banner {esc(brief["tone"])}">
-              <span>背调匹配</span><strong>{esc(tone_label.get(brief["tone"], brief["label"]))}</strong>
-              <small>{esc(brief["detail"])}。报告结果仅供招聘决策复核，最终以合规背调授权及正式报告为准。</small>
+        f'''<div class="background-report-head">
+              <div><span>背调核验报告</span><strong>{esc(candidate.get("name", "候选人"))} · {esc(report["report_no"])}</strong></div>
+              <div class="background-report-meta"><b>核验时间</b>{esc(report["checked_at"])}<br><b>数据状态</b>{esc(report["data_status"])}</div>
+            </div>
+            <div class="background-result-banner {esc(brief["tone"])}">
+              <span>背调结论</span><strong>{esc(tone_label.get(brief["tone"], brief["label"]))}</strong>
+              <small>{esc(brief["detail"])}。{esc(report["disclaimer"])}</small>
             </div>''',
         unsafe_allow_html=True,
     )
+    st.markdown(
+        f'''<div class="background-stat-grid">
+              <div><span>核验项目</span><strong>{report["total"]}</strong><small>身份、履历、合规、学历等</small></div>
+              <div><span>已形成结论</span><strong>{report["checked"]}</strong><small>含 Demo 模拟核验结果</small></div>
+              <div><span>待授权/补充</span><strong class="warning-text">{report["pending"]}</strong><small>须由 HR 发起正式核验</small></div>
+              <div><span>异常提示</span><strong class="{esc(brief["tone"])}">{report["abnormal"]}</strong><small>需优先复核的项目</small></div>
+            </div>''',
+        unsafe_allow_html=True,
+    )
+    section("核验项目与依据", "每一项都保留来源、证据和当前结论")
     _render_background_check(candidate, risks, compact=False)
+    st.caption(f'报告来源：{report["source"]}。正式接入时替换为企业采购的合规背调服务回传结果，并需候选人授权。')
+
+
+def _render_risk_evidence_overview(candidate: dict, risks: list[dict], level: str) -> None:
+    high = sum(1 for risk in risks if risk.get("severity") == "high")
+    medium = sum(1 for risk in risks if risk.get("severity") == "medium")
+    evidence_count = sum(1 for risk in risks if risk.get("evidence"))
+    focus_count = len((candidate.get("risk_report") or {}).get("interview_focus") or [])
+    st.markdown(
+        f'''<div class="risk-evidence-grid">
+              <div><span>综合风险</span><strong class="risk-level-{esc(level)}">{esc(level)}风险</strong><small>由规则扫描与 AI 补充判断形成</small></div>
+              <div><span>风险点</span><strong>{len(risks)}</strong><small>高风险 {high} 项，中风险 {medium} 项</small></div>
+              <div><span>可追溯证据</span><strong>{evidence_count}</strong><small>来自简历时间线、技能与项目描述</small></div>
+              <div><span>建议追问</span><strong>{focus_count}</strong><small>将同步进入候选人专属面试包</small></div>
+            </div>''',
+        unsafe_allow_html=True,
+    )
 
 
 def _render_flow_tracker(candidate: dict) -> None:
@@ -544,7 +577,7 @@ def _render_verification_actions(focus: list[str], level: str) -> None:
 
 
 def _render_background_check(candidate: dict, risks: list[dict], compact: bool = False) -> None:
-    section("背调核验摘要", "把第三方背调报告折叠成 HR 可读的风险状态")
+    section("背调核验摘要", "展示当前结论及其来源；第三方项目需在授权后正式核验")
     checks = _background_items(candidate, risks)
     html = []
     for item in checks:
@@ -553,7 +586,7 @@ def _render_background_check(candidate: dict, risks: list[dict], compact: bool =
             f"""
             <div class="risk-check-row {tone}">
               <span class="risk-check-dot"></span>
-              <div><b>{esc(item["name"])}</b><small>{esc(item["result"])}</small></div>
+              <div><b>{esc(item["name"])}</b><small>{esc(item["result"])}</small><small class="risk-check-evidence">{esc(item.get("evidence", "来源待补充"))}</small></div>
               <em>{esc(item["status"])}</em>
             </div>
             """
@@ -805,6 +838,26 @@ def _background_brief(candidate: dict) -> dict:
     return {"label": "未发现异常", "detail": "身份、履历、学历等通过", "tone": "success"}
 
 
+def _background_report(candidate: dict, risks: list[dict]) -> dict:
+    items = _background_items(candidate, risks)
+    checked = sum(1 for item in items if item.get("status") in {"通过", "异常"})
+    pending = sum(1 for item in items if item.get("status") == "待核验")
+    abnormal = sum(1 for item in items if item.get("status") == "异常")
+    candidate_id = str(candidate.get("id") or "DEMO").upper().replace("_", "-")
+    updated_at = str(candidate.get("updated_at") or "").replace("T", " ")[:16]
+    return {
+        "report_no": f"HX-BG-{candidate_id}",
+        "checked_at": updated_at or "Demo 即时生成",
+        "data_status": "Demo 模拟核验" if not candidate.get("background_check") else "已导入背调回传",
+        "source": "候选人授权材料、简历解析、Demo 背调服务回传模板",
+        "disclaimer": "当前为 Demo 模拟核验，不等同于真实第三方背调结论。",
+        "total": len(items),
+        "checked": checked,
+        "pending": pending,
+        "abnormal": abnormal,
+    }
+
+
 def _score(value) -> int:
     try:
         return max(0, min(100, int(round(float(value)))))
@@ -996,16 +1049,69 @@ def _background_items(candidate: dict, risks: list[dict]) -> list[dict]:
     has_lawsuit = "诉讼" in text or "被执行" in text
     has_credit = "网贷" in text or "逾期" in text
     has_business = "商业关联" in text or "法人" in text or "高管" in text
+    education = (candidate.get("resume_parsed") or {}).get("education") or []
+    experience = (candidate.get("resume_parsed") or {}).get("experience") or []
+    school = education[0].get("school", "简历教育经历") if education else "简历教育经历"
+    degree = education[0].get("degree", "学历待补") if education else "学历待补"
+    work_evidence = "；".join(
+        f'{item.get("company", "单位未填写")} {item.get("start", "")}-{item.get("end", "")}'
+        for item in experience[:3]
+    ) or "简历未提供连续工作经历"
     return [
-        {"name": "身份信息", "status": "异常" if has_identity else "通过", "result": "姓名与证件一致性" + ("待复核" if has_identity else "未发现异常"), "tone": "danger" if has_identity else "success"},
-        {"name": "社会安全/犯罪风险", "status": "通过", "result": "未发现犯罪或社会安全异常记录", "tone": "success"},
-        {"name": "吸毒记录", "status": "通过", "result": "未发现异常记录", "tone": "success"},
-        {"name": "网贷信用", "status": "异常" if has_credit else "通过", "result": "存在逾期/信用疑点" if has_credit else "当前未发现逾期风险", "tone": "danger" if has_credit else "success"},
-        {"name": "诉讼/被执行人", "status": "异常" if has_lawsuit else "通过", "result": "存在诉讼或被执行疑点" if has_lawsuit else "未发现诉讼及被执行记录", "tone": "danger" if has_lawsuit else "success"},
-        {"name": "商业关联风险", "status": "异常" if has_business else "通过", "result": "存在企业任职/股权疑点" if has_business else "未发现高风险商业关联", "tone": "danger" if has_business else "success"},
-        {"name": "学历核验", "status": "待核验" if has_cert else "通过", "result": "学历/证书材料建议复查" if has_cert else "学历信息暂未发现异常", "tone": "warning" if has_cert else "success"},
-        {"name": "学位核验", "status": "待核验" if has_cert else "通过", "result": "学位或证书编号待复查" if has_cert else "学位信息暂未发现异常", "tone": "warning" if has_cert else "success"},
-        {"name": "工作履历", "status": "异常" if has_gap else "通过", "result": "存在未解释空档期" if has_gap else "履历连续性正常", "tone": "danger" if has_gap else "success"},
+        {
+            "name": "身份信息", "status": "异常" if has_identity else "通过",
+            "result": "姓名、证件类型与候选人授权材料一致" if not has_identity else "姓名或证件字段存在不一致，需人工复核",
+            "evidence": "来源：候选人提交身份证明材料（Demo 脱敏）",
+            "tone": "danger" if has_identity else "success",
+        },
+        {
+            "name": "社会安全/犯罪风险", "status": "待核验",
+            "result": "尚未接入正式合规核验服务，不能据此作出无犯罪结论",
+            "evidence": "来源：待 HR 获取候选人授权后调用合规背调服务",
+            "tone": "warning",
+        },
+        {
+            "name": "吸毒记录", "status": "待核验",
+            "result": "该项目需在候选人授权范围内由合规服务回传",
+            "evidence": "来源：第三方背调服务授权项（Demo 未真实查询）",
+            "tone": "warning",
+        },
+        {
+            "name": "网贷信用", "status": "异常" if has_credit else "待核验",
+            "result": "存在逾期/信用疑点" if has_credit else "未发起合规查询，不展示个人征信结论",
+            "evidence": "来源：候选人授权后的合规背调服务；当前 Demo 未真实查询",
+            "tone": "danger" if has_credit else "warning",
+        },
+        {
+            "name": "诉讼/被执行人", "status": "异常" if has_lawsuit else "待核验",
+            "result": "存在诉讼或被执行疑点" if has_lawsuit else "等待正式服务回传公开司法风险结果",
+            "evidence": "来源：合规公开司法风险核验服务（Demo 待接入）",
+            "tone": "danger" if has_lawsuit else "warning",
+        },
+        {
+            "name": "商业关联风险", "status": "异常" if has_business else "待核验",
+            "result": "存在企业任职/股权疑点" if has_business else "等待正式服务回传企业任职与关联信息",
+            "evidence": "来源：合规企业公开信息核验服务（Demo 待接入）",
+            "tone": "danger" if has_business else "warning",
+        },
+        {
+            "name": "学历核验", "status": "待核验" if not education or has_cert else "通过",
+            "result": "学历/证书材料建议复查" if has_cert else f"简历声明：{school} · {degree}",
+            "evidence": f"来源：简历教育经历；需接入学信/授权材料完成正式验证",
+            "tone": "warning" if not education or has_cert else "success",
+        },
+        {
+            "name": "学位核验", "status": "待核验",
+            "result": "学位证书编号或授权查询结果待补充",
+            "evidence": "来源：候选人学位材料或授权查询结果",
+            "tone": "warning",
+        },
+        {
+            "name": "工作履历", "status": "异常" if has_gap else "通过",
+            "result": "存在未解释空档期" if has_gap else "简历时间线未发现超过规则阈值的空档",
+            "evidence": f"来源：简历经历时间线：{work_evidence}",
+            "tone": "danger" if has_gap else "success",
+        },
     ]
 
 
@@ -1157,6 +1263,7 @@ def _inject_risk_styles() -> None:
         .risk-check-dot { width:8px; height:8px; border-radius:50%; background:var(--text-3); }
         .risk-check-row b { display:block; color:var(--text); font-size:13px; }
         .risk-check-row small { display:block; color:var(--text-3); margin-top:2px; line-height:1.35; }
+        .risk-check-row .risk-check-evidence { color:var(--text-2); font-size:11px; margin-top:5px; }
         .risk-check-row em { font-style:normal; font-size:12px; color:var(--text-2); }
         .risk-check-row.success .risk-check-dot { background:var(--success); }
         .risk-check-row.warning .risk-check-dot { background:var(--warning); }

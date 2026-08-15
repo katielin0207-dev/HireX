@@ -47,6 +47,7 @@ from app.views import interview_eval as view_interview_eval
 from app.views import report as view_report
 from app.views import screening as view_screening
 from app.views import risk as view_risk
+from app.views import preoffer as view_preoffer
 
 inject_theme()
 
@@ -64,7 +65,7 @@ DEFAULTS = {
     "tts_error": "", "tts_notice": "",   # 语音失败/降级提示，由侧边栏消费后清空
     "digital_human_enabled": True,
     "n_rounds": settings.DEFAULT_SAMPLE_ROUNDS,
-    "active_tab": "screening", "ui_lang": "zh",
+    "active_tab": "preoffer", "ui_lang": "zh",
     "interview_link_info": None,   # 面试链接信息 {token, link, ...}
     "voice_input_text": "",        # 语音识别的文本
 }
@@ -846,9 +847,9 @@ st.markdown(f"""
         <span class="brand-name">{_t('app.name')}</span>
     </div>
     <div class="brand-flow">
-        <span class="flow-step">{_t('nav.analysis')}</span><span class="flow-arrow">→</span>
-        <span class="flow-step">{_t('nav.interview')}</span><span class="flow-arrow">→</span>
-        <span class="flow-step">{_t('nav.report')}</span>
+        <span class="flow-step">人才评价</span><span class="flow-arrow">→</span>
+        <span class="flow-step">录用前核验</span><span class="flow-arrow">→</span>
+        <span class="flow-step">Offer 审批</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -864,24 +865,22 @@ st.markdown(f"""
 #   `active_tab` 里存的旧中文标签就再也匹配不上任何选项 —— 切语言会把
 #   用户踢回首页。分离之后，语言和导航状态互不影响。
 NAV = [
-    # ★ MVP 主链路入口：A 的简历筛选模块（已完成）
-    ("screening", "📋 简历筛选"),
-    ("risk", "⚡ 智能分析"),
-    ("interview_eval", "📝 面试评价"),
+    # ★ 当前演示只保留 B 负责的录用前核验页面；其他页面先隐藏，底层文件不删除。
+    ("preoffer", "✓ 录用前核验"),
     # ── 基座原有页面（analysis/interview/report/skills）：MVP 阶段隐藏，
     #    避免 demo 暴露未完成的基座能力；B/C 模块完成后在此追加各自入口 ──
     # ("analysis",  "📄 " + _t("nav.analysis")),
     # ("interview", "🤖 " + _t("nav.interview")),
     # ("report",    "📊 " + _t("nav.report")),
     # ("skills",    "🧩 " + _t("nav.skills")),
-    ("settings",  "⚙️ " + _t("nav.settings")),
+    # ("settings",  "⚙️ " + _t("nav.settings")),
 ]
 nav_keys = [k for k, _ in NAV]
 nav_labels = {k: v for k, v in NAV}
 
-_cur = st.session_state.get("active_tab", "screening")
-if _cur not in nav_keys:                    # 隐藏基座页后，所有旧标签统一回退到 screening
-    _cur = "screening"
+_cur = st.session_state.get("active_tab", "preoffer")
+if _cur not in nav_keys:                    # 当前只展示录用前核验，旧标签统一回到 preoffer
+    _cur = "preoffer"
 
 active = st.radio("导航", nav_keys,
     index=nav_keys.index(_cur),
@@ -895,6 +894,8 @@ elif active == "analysis":
     tab_resume_analysis()
 elif active == "risk":
     view_risk.render()
+elif active == "preoffer":
+    view_preoffer.render()
 elif active == "interview":
     tab_ai_interview()
 elif active == "interview_eval":
