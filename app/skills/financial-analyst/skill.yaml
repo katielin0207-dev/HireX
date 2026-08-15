@@ -1,0 +1,11 @@
+skill_id: "financial-analyst"
+name: "财务分析"
+category: "assessment"
+trigger: "on_question_generation"
+description: "为财务分析岗位生成专项面试题（财务报表/预算管理/风险控制/合规）"
+depends_on:
+  - jd_data
+  - resume_data
+produces:
+  - questions
+active: false

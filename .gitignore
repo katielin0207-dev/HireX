@@ -1,0 +1,12 @@
+# 运行时数据（不提交）
+sessions/candidates/*.json
+sessions/jd.json
+sessions/flywheel_records.json
+!sessions/candidates/.gitkeep
+
+# 环境
+.venv/
+.env
+__pycache__/
+*.pyc
+.streamlit/credentials.toml

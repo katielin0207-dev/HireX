@@ -1,0 +1,11 @@
+skill_id: "product-manager"
+name: "产品经理"
+category: "assessment"
+trigger: "on_question_generation"
+description: "为产品经理岗位生成专项面试题（需求分析/PRD/数据驱动/竞品分析）"
+depends_on:
+  - jd_data
+  - resume_data
+produces:
+  - questions
+active: false

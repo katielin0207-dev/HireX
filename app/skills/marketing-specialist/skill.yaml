@@ -1,0 +1,11 @@
+skill_id: "marketing-specialist"
+name: "市场营销"
+category: "assessment"
+trigger: "on_question_generation"
+description: "为市场营销岗位生成专项面试题（增长策略/SEO/内容营销/数据分析）"
+depends_on:
+  - jd_data
+  - resume_data
+produces:
+  - questions
+active: false

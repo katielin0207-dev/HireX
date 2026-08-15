@@ -1,0 +1,111 @@
+{
+  "id": "cand_003",
+  "name": "马跃",
+  "resume_file": "mock/resumes/08_马跃_风险_经历断层.txt",
+  "resume_text": "（由 B 在上传/导入时填充完整原文，此处省略）",
+  "resume_parsed": {
+    "education": [
+      {
+        "school": "东华大学",
+        "degree": "本科",
+        "major": "软件工程",
+        "start": "2014.09",
+        "end": "2018.06"
+      }
+    ],
+    "experience": [
+      {
+        "company": "上海某科技公司",
+        "title": "后端开发工程师",
+        "start": "2024.06",
+        "end": "至今"
+      },
+      {
+        "company": "某外包公司",
+        "title": "Python 开发工程师",
+        "start": "2020.03",
+        "end": "2021.12"
+      }
+    ],
+    "skills": [
+      "Python",
+      "Django",
+      "FastAPI",
+      "MySQL",
+      "Redis",
+      "Git",
+      "Docker"
+    ],
+    "total_years": 3.5
+  },
+  "match_result": {
+    "overall_score": 52,
+    "hard_score": 60,
+    "soft_score": 42,
+    "recommendation": "不推进",
+    "breakdown": {
+      "skills_match": {
+        "score": 62,
+        "reason": "技能覆盖基础项但深度不足"
+      },
+      "experience_match": {
+        "score": 45,
+        "reason": "自称 6 年经验但可核实仅 3.5 年，存在 2.4 年空档"
+      },
+      "education_match": {
+        "score": 100,
+        "reason": "本科达标"
+      },
+      "project_relevance": {
+        "score": 40,
+        "reason": "项目为内部小工具，复杂度低"
+      }
+    },
+    "matched_points": [
+      "学历达标",
+      "基础技能具备"
+    ],
+    "gap_points": [
+      "经历断层 2.4 年无法解释",
+      "经验年限自述与可核实不符",
+      "项目复杂度低"
+    ],
+    "summary": "存在重大经历断层风险，建议谨慎。"
+  },
+  "risk_report": {
+    "level": "高",
+    "risks": [
+      {
+        "type": "经历断层",
+        "severity": "high",
+        "detail": "2022.01-2024.05 共 2 年 4 个月无工作经历，简历未说明",
+        "evidence": "2020.03-2021.12 某外包公司 → 2024.06 至今，中间无记录"
+      },
+      {
+        "type": "信息存疑",
+        "severity": "medium",
+        "detail": "自述 6 年经验，可核实仅 3.5 年",
+        "evidence": "语言：Python（熟练，自称6年）"
+      },
+      {
+        "type": "信息存疑",
+        "severity": "medium",
+        "detail": "空档期自称'自由职业'但无项目证明",
+        "evidence": "面试中解释为'自由职业'，但无法提供项目证明"
+      }
+    ],
+    "interview_focus": [
+      "必须核实 2022-2024 空档期真实去向",
+      "要求提供空档期收入/社保证明",
+      "技术深度验证（疑似包装）"
+    ]
+  },
+  "interview_eval": null,
+  "status": "risk_checked",
+  "tags": [
+    "Python",
+    "经历断层",
+    "高风险"
+  ],
+  "updated_at": "2026-08-15T10:10:00"
+}

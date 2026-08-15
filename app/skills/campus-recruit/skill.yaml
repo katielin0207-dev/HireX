@@ -1,0 +1,11 @@
+skill_id: "campus-recruit"
+name: "校招专项"
+category: "screening"
+trigger: "on_matching"
+description: "调整评分标准适配校园招聘"
+depends_on:
+  - jd_data
+  - resume_data
+produces:
+  - questions
+active: true

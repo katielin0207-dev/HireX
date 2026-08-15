@@ -1,0 +1,11 @@
+skill_id: "sales-representative"
+name: "销售代表"
+category: "assessment"
+trigger: "on_question_generation"
+description: "为销售岗位生成专项面试题（客户开发/谈判技巧/CRM/业绩管理）"
+depends_on:
+  - jd_data
+  - resume_data
+produces:
+  - questions
+active: false

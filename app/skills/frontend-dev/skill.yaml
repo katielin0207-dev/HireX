@@ -1,0 +1,11 @@
+skill_id: "frontend-dev"
+name: "前端开发"
+category: "assessment"
+trigger: "on_question_generation"
+description: "为前端开发岗位生成专项面试题（HTML/CSS/JS/框架/性能优化）"
+depends_on:
+  - jd_data
+  - resume_data
+produces:
+  - questions
+active: false

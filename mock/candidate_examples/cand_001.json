@@ -1,0 +1,105 @@
+{
+  "id": "cand_001",
+  "name": "陈晓",
+  "resume_file": "mock/resumes/01_陈晓_优秀.txt",
+  "resume_text": "（由 B 在上传/导入时填充完整原文，此处省略）",
+  "resume_parsed": {
+    "education": [
+      {
+        "school": "上海交通大学",
+        "degree": "硕士",
+        "major": "计算机科学与技术",
+        "start": "2019.09",
+        "end": "2022.06"
+      },
+      {
+        "school": "上海交通大学",
+        "degree": "本科",
+        "major": "计算机科学与技术",
+        "start": "2015.09",
+        "end": "2019.06"
+      }
+    ],
+    "experience": [
+      {
+        "company": "拼多多",
+        "title": "高级后端开发工程师",
+        "start": "2022.07",
+        "end": "至今"
+      },
+      {
+        "company": "字节跳动",
+        "title": "后端开发实习生",
+        "start": "2020.03",
+        "end": "2022.06"
+      }
+    ],
+    "skills": [
+      "Python",
+      "Go",
+      "FastAPI",
+      "Django",
+      "Celery",
+      "MySQL",
+      "Redis",
+      "Elasticsearch",
+      "ChromaDB",
+      "Kafka",
+      "Docker",
+      "Kubernetes"
+    ],
+    "total_years": 3.1
+  },
+  "match_result": {
+    "overall_score": 91,
+    "hard_score": 95,
+    "soft_score": 86,
+    "recommendation": "推进",
+    "breakdown": {
+      "skills_match": {
+        "score": 95,
+        "reason": "必备技能全覆盖，加分项命中 ES/K8s/RAG/Go 四项"
+      },
+      "experience_match": {
+        "score": 92,
+        "reason": "3.1 年大厂后端经验，日均 2 亿次请求的高并发实战"
+      },
+      "education_match": {
+        "score": 100,
+        "reason": "上海交大硕士，计算机科班"
+      },
+      "project_relevance": {
+        "score": 88,
+        "reason": "RAG 质检系统直接命中 LLM 加分项"
+      }
+    },
+    "matched_points": [
+      "技能全覆盖且深度足够",
+      "大厂高并发经验",
+      "硕士学历",
+      "有带人和代码评审经验"
+    ],
+    "gap_points": [
+      "硕士应届起步，独立带团队经验有限"
+    ],
+    "summary": "高匹配候选人，技能、经验、学历全面达标，建议优先推进。"
+  },
+  "risk_report": {
+    "level": "低",
+    "risks": [],
+    "interview_focus": [
+      "核实优惠券系统改造中的个人具体贡献",
+      "了解其带 2 名初级工程师的管理方式"
+    ]
+  },
+  "interview_eval": null,
+  "status": "risk_checked",
+  "tags": [
+    "Python",
+    "3年经验",
+    "大厂",
+    "RAG",
+    "高并发"
+  ],
+  "updated_at": "2026-08-15T10:00:00"
+}

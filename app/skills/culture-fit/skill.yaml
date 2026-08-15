@@ -1,0 +1,11 @@
+skill_id: "culture-fit"
+name: "文化契合"
+category: "screening"
+trigger: "on_question_generation"
+description: "生成价值观/文化匹配面试题"
+depends_on:
+  - jd_data
+  - resume_data
+produces:
+  - questions
+active: true

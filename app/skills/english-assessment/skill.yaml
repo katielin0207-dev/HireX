@@ -1,0 +1,11 @@
+skill_id: "english-assessment"
+name: "英语评估"
+category: "assessment"
+trigger: "on_question_generation"
+description: "生成英语能力面试题（口语/阅读/写作）"
+depends_on:
+  - jd_data
+  - resume_data
+produces:
+  - questions
+active: true

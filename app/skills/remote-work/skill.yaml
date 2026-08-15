@@ -1,0 +1,11 @@
+skill_id: "remote-work"
+name: "远程工作适配"
+category: "screening"
+trigger: "on_question_generation"
+description: "生成远程工作能力专项面试题（自驱力/异步沟通/时间管理/工具使用）"
+depends_on:
+  - jd_data
+  - resume_data
+produces:
+  - questions
+active: false

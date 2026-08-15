@@ -1,0 +1,11 @@
+skill_id: "lenient-scoring"
+name: "宽松评分模式"
+category: "screening"
+trigger: "on_matching"
+description: "启用宽松评分：匹配阈值降至45分，nice-to-have项作为加分项不扣分，模糊点给予信任"
+depends_on:
+  - jd_data
+  - resume_data
+produces:
+  - questions
+active: false

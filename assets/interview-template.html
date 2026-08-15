@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIOffer-Research · 智能模拟面试</title>
+<style>
+/* ===== CSS Variables ===== */
+:root {
+  --bg: #f8f9fa;
+  --card-bg: #ffffff;
+  --text: #1a1a2e;
+  --text-secondary: #6c757d;
+  --text-muted: #adb5bd;
+  --border: #e9ecef;
+  --primary: #4f46e5;
+  --primary-light: #eef2ff;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --tag-resume: #dbeafe;
+  --tag-resume-text: #1d4ed8;
+  --tag-position: #dcfce7;
+  --tag-position-text: #15803d;
+  --tag-basic: #fef3c7;
+  --tag-basic-text: #b45309;
+  --tag-quality: #fce7f3;
+  --tag-quality-text: #be185d;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+  --radius: 8px;
+  --radius-lg: 12px;
+  --transition: 0.2s ease;
+}
+
+/* ===== Reset & Base ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== Layout ===== */
+.container { max-width: 900px; margin: 0 auto; padding: 24px 16px 80px; }
+
+/* ===== Header ===== */
+.header {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #a855f7 100%);
+  color: white;
+  padding: 32px 24px;
+  border-radius: var(--radius-lg);
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.header::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 300px;
+  height: 300px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 50%;
+}
+.header h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 4px; position: relative; z-index: 1; }
+.header .subtitle { font-size: 0.9rem; opacity: 0.85; position: relative; z-index: 1; }
+.header .meta { display: flex; gap: 16px; margin-top: 12px; font-size: 0.85rem; opacity: 0.9; position: relative; z-index: 1; }
+.header .meta span { display: flex; align-items: center; gap: 4px; }
+
+/* ===== Round Tabs ===== */
+.tabs {
+  display: flex;
+  gap: 0;
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+.tab {
+  flex: 1;
+  padding: 14px 12px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  border-bottom: 3px solid transparent;
+  transition: var(--transition);
+  user-select: none;
+}
+.tab:hover { background: var(--primary-light); color: var(--primary); }
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+.tab .round-number { font-size: 0.75rem; opacity: 0.7; display: block; }
+
+/* ===== Progress Bar ===== */
+.progress-wrap { margin-bottom: 20px; }
+.progress-info { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px; }
+.progress-bar {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4f46e5, #7c3aed);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+/* ===== Question Card ===== */
+.question-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 28px 24px;
+  margin-bottom: 16px;
+}
+.question-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.question-number {
+  background: var(--primary);
+  color: white;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+.question-text {
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.7;
+  flex: 1;
+}
+.question-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.tag {
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.tag-resume { background: var(--tag-resume); color: var(--tag-resume-text); }
+.tag-position { background: var(--tag-position); color: var(--tag-position-text); }
+.tag-basic { background: var(--tag-basic); color: var(--tag-basic-text); }
+.tag-quality { background: var(--tag-quality); color: var(--tag-quality-text); }
+
+/* ===== Hint / Think Area ===== */
+.think-area {
+  background: #fefce8;
+  border: 1px solid #fde68a;
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.think-area summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #92400e;
+  user-select: none;
+}
+.think-area summary:hover { color: #b45309; }
+.think-hints { margin-top: 10px; padding-left: 20px; }
+.think-hints li { margin-bottom: 4px; font-size: 0.88rem; color: #78350f; }
+
+/* ===== Answer Area ===== */
+.answer-section {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.answer-toggle {
+  width: 100%;
+  padding: 14px 20px;
+  background: var(--primary-light);
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--primary);
+  display: flex; align-items: center; gap: 8px;
+  transition: var(--transition);
+  user-select: none;
+}
+.answer-toggle:hover { background: #e0e7ff; }
+.answer-toggle .arrow { transition: transform 0.3s ease; font-size: 0.75rem; }
+.answer-toggle.open .arrow { transform: rotate(90deg); }
+
+.answer-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, padding 0.3s ease;
+}
+.answer-content.open {
+  max-height: 3000px;
+  padding: 20px;
+  border-top: 1px solid var(--border);
+}
+.answer-intro {
+  font-size: 0.95rem;
+  line-height: 1.8;
+  margin-bottom: 16px;
+}
+.answer-detail {
+  background: #f8f9fa;
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.answer-detail h4 {
+  font-size: 0.88rem;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+.answer-detail p, .answer-detail li { font-size: 0.88rem; line-height: 1.7; }
+.answer-detail pre {
+  background: #1e1e2e;
+  color: #cdd6f4;
+  padding: 14px;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  margin: 8px 0;
+}
+.answer-score {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  margin-top: 12px;
+}
+.answer-score h4 { font-size: 0.88rem; color: #92400e; margin-bottom: 10px; }
+.score-level { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.score-level .stars { color: #f59e0b; font-size: 1rem; }
+.score-level .desc { font-size: 0.85rem; color: #78350f; }
+
+/* ===== Navigation ===== */
+.nav-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+.nav-buttons { display: flex; gap: 8px; }
+.btn {
+  padding: 10px 20px;
+  border-radius: var(--radius);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: var(--transition);
+  display: flex; align-items: center; gap: 6px;
+}
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: #4338ca; }
+.btn-outline { background: white; color: var(--primary); border: 1.5px solid var(--primary); }
+.btn-outline:hover { background: var(--primary-light); }
+.btn-ghost { background: transparent; color: var(--text-secondary); }
+.btn-ghost:hover { color: var(--text); }
+.btn-danger { background: #fef2f2; color: var(--danger); border: 1.5px solid #fecaca; }
+.btn-danger:hover { background: #fee2e2; }
+.btn-success { background: var(--success); color: white; }
+.btn-success:hover { background: #059669; }
+
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ===== Blind Spot Modal ===== */
+.blind-spots {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px;
+}
+.blind-spot {
+  background: #fef2f2;
+  color: var(--danger);
+  border: 1px solid #fecaca;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex; align-items: center; gap: 4px;
+}
+.blind-spot:hover { background: #fee2e2; }
+.blind-spot.marked { background: var(--danger); color: white; border-color: var(--danger); }
+
+/* ===== Summary Panel ===== */
+.summary-panel {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 28px 24px;
+  margin-top: 32px;
+  display: none;
+}
+.summary-panel.show { display: block; }
+.summary-panel h2 { font-size: 1.3rem; margin-bottom: 20px; }
+.summary-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.stat-card {
+  background: var(--bg);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+}
+.stat-card .stat-value { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+.stat-card .stat-label { font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; }
+.blind-list { margin-top: 16px; }
+.blind-list h3 { font-size: 1rem; margin-bottom: 10px; }
+.blind-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 16px; background: #fef2f2; border-radius: var(--radius);
+  margin-bottom: 8px;
+}
+.blind-item .blind-tag { font-size: 0.75rem; background: var(--danger); color: white; padding: 2px 8px; border-radius: 10px; }
+.blind-item .blind-text { font-size: 0.88rem; flex: 1; margin: 0 12px; }
+.review-suggestions { margin-top: 20px; }
+.review-suggestions h3 { font-size: 1rem; margin-bottom: 10px; }
+.suggestion {
+  background: var(--primary-light);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  font-size: 0.88rem;
+  display: flex; align-items: flex-start; gap: 8px;
+}
+
+/* ===== Footer ===== */
+.footer {
+  text-align: center;
+  margin-top: 48px;
+  padding: 24px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 600px) {
+  .container { padding: 12px 10px 60px; }
+  .header { padding: 24px 16px; }
+  .header h1 { font-size: 1.3rem; }
+  .question-card { padding: 20px 16px; }
+  .tab { padding: 10px 6px; font-size: 0.8rem; }
+  .nav-row { flex-direction: column; }
+  .nav-buttons { width: 100%; justify-content: space-between; }
+}
+
+/* ===== Print ===== */
+@media print {
+  .nav-row, .tabs, .footer, .btn, .answer-toggle { display: none; }
+  .answer-content { max-height: none !important; border-top: none; }
+  .container { max-width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <h1>AIOffer-Research · 智能模拟面试</h1>
+    <div class="subtitle">简历驱动 · 多维出题 · 全流程模拟</div>
+    <div class="meta">
+      <span>👤 {{CANDIDATE_NAME}}</span>
+      <span>🎯 {{POSITION}}</span>
+      <span>📊 共 {{TOTAL_QUESTIONS}} 题</span>
+    </div>
+  </div>
+
+  <!-- Round Tabs -->
+  <div class="tabs" id="tabs">
+    <!-- Injected by JS: round tabs -->
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-wrap">
+    <div class="progress-info">
+      <span id="progress-label">第 1 / 15 题</span>
+      <span id="progress-pct">7%</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width: 7%;"></div>
+    </div>
+  </div>
+
+  <!-- Question Card -->
+  <div class="question-card" id="question-card">
+    <div class="question-header">
+      <div class="question-number" id="q-number">1</div>
+      <div>
+        <div class="question-text" id="q-text">Loading...</div>
+        <div class="question-tags" id="q-tags"></div>
+      </div>
+    </div>
+
+    <!-- Think Area -->
+    <details class="think-area" id="think-area">
+      <summary>💡 思考提示（点击展开）</summary>
+      <ul class="think-hints" id="think-hints"></ul>
+    </details>
+
+    <!-- Reference Answer -->
+    <div class="answer-section" id="answer-section">
+      <button class="answer-toggle" id="answer-toggle" onclick="toggleAnswer()">
+        <span class="arrow">▶</span> 📖 参考回答（点击展开）
+      </button>
+      <div class="answer-content" id="answer-content">
+        <!-- Injected by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <div class="nav-row">
+    <div class="nav-buttons">
+      <button class="btn btn-ghost" id="btn-prev" onclick="prevQuestion()">⬅ 上一题</button>
+      <button class="btn btn-primary" id="btn-next" onclick="nextQuestion()">下一题 ➡</button>
+    </div>
+    <div>
+      <button class="btn btn-danger" id="btn-blind" onclick="toggleBlindSpot()">
+        🏴 <span id="blind-label">标记盲区</span>
+      </button>
+      <button class="btn btn-outline" id="btn-summary" onclick="toggleSummary()" style="margin-left: 8px;">
+        📊 面试总结
+      </button>
+    </div>
+  </div>
+
+  <!-- Blind Spots List -->
+  <div class="blind-spots" id="blind-spots"></div>
+
+  <!-- Summary Panel -->
+  <div class="summary-panel" id="summary-panel">
+    <h2>📊 面试总结报告</h2>
+    <div class="summary-stats" id="summary-stats"></div>
+    <div class="blind-list" id="blind-list"></div>
+    <div class="review-suggestions" id="review-suggestions"></div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    Generated by AIOffer-Research · 仅供面试备考使用 · MIT License
+  </div>
+</div>
+
+<script>
+// ===== Interview Data =====
+const INTERVIEW_DATA = {{INTERVIEW_JSON}};
+
+// ===== State =====
+let currentRound = 0;
+let currentQuestionIdx = 0;
+let blindSpots = {};
+let answerVisible = false;
+
+// ===== Init =====
+function init() {
+  renderTabs();
+  renderQuestion();
+  updateBlindSpotUI();
+}
+
+// ===== Render Tabs =====
+function renderTabs() {
+  const tabsEl = document.getElementById('tabs');
+  tabsEl.innerHTML = INTERVIEW_DATA.rounds.map((r, i) => {
+    const isActive = i === currentRound ? ' active' : '';
+    const icon = ['🔍', '🔬', '🏗️', '💬'][i] || '📝';
+    return `<div class="tab${isActive}" onclick="switchRound(${i})">
+      <span class="round-number">${icon}</span>
+      ${r.name}
+    </div>`;
+  }).join('');
+}
+
+// ===== Switch Round =====
+function switchRound(roundIdx) {
+  currentRound = roundIdx;
+  currentQuestionIdx = 0;
+  answerVisible = false;
+  renderTabs();
+  renderQuestion();
+}
+
+// ===== Render Question =====
+function renderQuestion() {
+  const round = INTERVIEW_DATA.rounds[currentRound];
+  const q = round.questions[currentQuestionIdx];
+  const totalInRound = round.questions.length;
+
+  // Update progress
+  document.getElementById('progress-label').textContent =
+    `第 ${currentQuestionIdx + 1} / ${totalInRound} 题`;
+  const pct = Math.round(((currentQuestionIdx + 1) / totalInRound) * 100);
+  document.getElementById('progress-pct').textContent = pct + '%';
+  document.getElementById('progress-fill').style.width = pct + '%';
+
+  // Update question
+  document.getElementById('q-number').textContent = currentQuestionIdx + 1;
+  document.getElementById('q-text').textContent = q.question;
+
+  // Tags
+  const tagMap = {
+    resume: 'tag-resume',
+    position: 'tag-position',
+    basic: 'tag-basic',
+    quality: 'tag-quality'
+  };
+  const tagLabels = {
+    resume: '📋 简历深挖',
+    position: '🎯 岗位匹配',
+    basic: '📚 基础能力',
+    quality: '🌟 综合素质'
+  };
+  document.getElementById('q-tags').innerHTML = (q.tags || [])
+    .map(t => `<span class="tag ${tagMap[t] || 'tag-basic'}">${tagLabels[t] || t}</span>`)
+    .join('');
+
+  // Think hints
+  document.getElementById('think-hints').innerHTML = (q.hints || [])
+    .map(h => `<li>${h}</li>`)
+    .join('');
+  document.getElementById('think-area').open = false;
+
+  // Answer content
+  document.getElementById('answer-content').innerHTML = buildAnswerHTML(q);
+  document.getElementById('answer-content').classList.remove('open');
+  document.getElementById('answer-toggle').classList.remove('open');
+  document.getElementById('answer-toggle').innerHTML =
+    '<span class="arrow">▶</span> 📖 参考回答（点击展开）';
+  answerVisible = false;
+
+  // Buttons
+  document.getElementById('btn-prev').disabled = currentQuestionIdx === 0;
+  document.getElementById('btn-next').disabled = currentQuestionIdx >= totalInRound - 1;
+
+  // Blind spot state
+  updateBlindSpotUI();
+
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ===== Build Answer HTML =====
+function buildAnswerHTML(q) {
+  let html = '';
+  const a = q.answer || {};
+
+  if (a.intro) {
+    html += `<div class="answer-intro">${a.intro}</div>`;
+  }
+  if (a.details && a.details.length > 0) {
+    a.details.forEach(d => {
+      html += `<div class="answer-detail">
+        <h4>${d.title || ''}</h4>
+        ${d.content ? `<p>${d.content}</p>` : ''}
+        ${d.code ? `<pre>${escapeHTML(d.code)}</pre>` : ''}
+        ${d.points ? '<ul>' + d.points.map(p => `<li>${p}</li>`).join('') + '</ul>' : ''}
+      </div>`;
+    });
+  }
+  if (a.score && a.score.length > 0) {
+    html += '<div class="answer-score"><h4>⭐ 评分标准</h4>';
+    a.score.forEach(s => {
+      html += `<div class="score-level">
+        <span class="stars">${'⭐'.repeat(s.level)}</span>
+        <span class="desc">${s.desc}</span>
+      </div>`;
+    });
+    html += '</div>';
+  }
+  if (a.bonus) {
+    html += `<div class="answer-detail" style="background:#eef2ff;">
+      <h4>💎 面试加分点</h4>
+      <p>${a.bonus}</p>
+    </div>`;
+  }
+
+  return html || '<p style="color:#6c757d;">暂无参考回答</p>';
+}
+
+// ===== Toggle Answer =====
+function toggleAnswer() {
+  const content = document.getElementById('answer-content');
+  const toggle = document.getElementById('answer-toggle');
+  answerVisible = !answerVisible;
+
+  if (answerVisible) {
+    content.classList.add('open');
+    toggle.classList.add('open');
+    toggle.innerHTML = '<span class="arrow">▼</span> 📖 参考回答（点击收起）';
+  } else {
+    content.classList.remove('open');
+    toggle.classList.remove('open');
+    toggle.innerHTML = '<span class="arrow">▶</span> 📖 参考回答（点击展开）';
+  }
+}
+
+// ===== Navigation =====
+function prevQuestion() {
+  if (currentQuestionIdx > 0) {
+    currentQuestionIdx--;
+    answerVisible = false;
+    renderQuestion();
+  }
+}
+
+function nextQuestion() {
+  const round = INTERVIEW_DATA.rounds[currentRound];
+  if (currentQuestionIdx < round.questions.length - 1) {
+    currentQuestionIdx++;
+    answerVisible = false;
+    renderQuestion();
+  }
+}
+
+// ===== Blind Spot =====
+function toggleBlindSpot() {
+  const key = `${currentRound}-${currentQuestionIdx}`;
+  if (blindSpots[key]) {
+    delete blindSpots[key];
+  } else {
+    const q = INTERVIEW_DATA.rounds[currentRound].questions[currentQuestionIdx];
+    blindSpots[key] = {
+      round: INTERVIEW_DATA.rounds[currentRound].name,
+      question: q.question,
+      tags: q.tags || [],
+      idx: currentQuestionIdx
+    };
+  }
+  updateBlindSpotUI();
+}
+
+function updateBlindSpotUI() {
+  const key = `${currentRound}-${currentQuestionIdx}`;
+  const isMarked = !!blindSpots[key];
+  document.getElementById('blind-label').textContent = isMarked ? '已标记' : '标记盲区';
+  document.getElementById('btn-blind').className = isMarked
+    ? 'btn btn-success' : 'btn btn-danger';
+
+  // Render blind spot list
+  const spotsEl = document.getElementById('blind-spots');
+  const spots = Object.values(blindSpots);
+  spotsEl.innerHTML = spots.map(s =>
+    `<span class="blind-spot marked">🏴 ${s.round} Q${s.idx + 1}</span>`
+  ).join('');
+}
+
+// ===== Summary =====
+function toggleSummary() {
+  const panel = document.getElementById('summary-panel');
+  const isOpen = panel.classList.contains('show');
+
+  if (isOpen) {
+    panel.classList.remove('show');
+    return;
+  }
+
+  // Stats
+  const totalQuestions = INTERVIEW_DATA.rounds.reduce((sum, r) => sum + r.questions.length, 0);
+  const blindedCount = Object.keys(blindSpots).length;
+  const answerShownCount = 0;
+
+  document.getElementById('summary-stats').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-value">${totalQuestions}</div>
+      <div class="stat-label">总题数</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">${INTERVIEW_DATA.rounds.length}</div>
+      <div class="stat-label">面试轮次</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:#ef4444;">${blindedCount}</div>
+      <div class="stat-label">盲区标记</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:#f59e0b;">${Math.round((blindedCount / totalQuestions) * 100)}%</div>
+      <div class="stat-label">盲区比例</div>
+    </div>
+  `;
+
+  // Blind spots list
+  const blindListEl = document.getElementById('blind-list');
+  const spots = Object.values(blindSpots);
+  blindListEl.innerHTML = spots.length > 0
+    ? '<h3>🏴 已标记盲区</h3>' + spots.map(s =>
+        `<div class="blind-item">
+          <span class="blind-tag">${s.round}</span>
+          <span class="blind-text">Q${s.idx + 1}. ${s.question.substring(0, 50)}...</span>
+        </div>`
+      ).join('')
+    : '<h3>✅ 暂无盲区标记</h3><p style="color:#6c757d;">回顾题目时，点击「标记盲区」记录需要加强的知识点。</p>';
+
+  // Suggestions
+  const suggestionsEl = document.getElementById('review-suggestions');
+  suggestionsEl.innerHTML = '<h3>💡 复习建议</h3>';
+  if (blindedCount === 0) {
+    suggestionsEl.innerHTML += '<div class="suggestion">✅ 你未标记任何盲区。建议重点复看各轮次的「参考回答评分标准」，对标自己的回答水平。</div>';
+  } else {
+    // Tag-based suggestions
+    const tagCount = {};
+    spots.forEach(s => {
+      (s.tags || []).forEach(t => { tagCount[t] = (tagCount[t] || 0) + 1; });
+    });
+    const tagSuggestions = {
+      resume: '📋 你的盲区主要集中在简历深挖题。建议重新梳理项目经历，准备好每个项目的「STAR 故事线」和技术细节的深度追问。',
+      position: '🎯 岗位匹配题存在盲区。建议针对目标岗位的 JD，系统补充该方向的技术知识体系。',
+      basic: '📚 基础能力存在短板。建议针对性地复习 CS 基础（数据结构/算法/网络/OS）或 ML/DL 基础理论。',
+      quality: '🌟 综合素质题需要加强。建议提前准备职业规划、团队协作、失败经历等行为面试题的 STAR 回答。'
+    };
+    Object.entries(tagCount).sort((a, b) => b[1] - a[1]).forEach(([tag, count]) => {
+      if (tagSuggestions[tag]) {
+        suggestionsEl.innerHTML += `<div class="suggestion">${tagSuggestions[tag]}</div>`;
+      }
+    });
+  }
+
+  panel.classList.add('show');
+  panel.scrollIntoView({ behavior: 'smooth' });
+}
+
+// ===== Keyboard Shortcuts =====
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  switch (e.key) {
+    case 'ArrowRight': nextQuestion(); break;
+    case 'ArrowLeft': prevQuestion(); break;
+    case ' ': e.preventDefault(); toggleAnswer(); break;
+    case 'b': toggleBlindSpot(); break;
+    case 's': toggleSummary(); break;
+    case '1': case '2': case '3': case '4':
+      const idx = parseInt(e.key) - 1;
+      if (idx < INTERVIEW_DATA.rounds.length) switchRound(idx);
+      break;
+  }
+});
+
+// ===== Utility =====
+function escapeHTML(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ===== Boot =====
+document.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>

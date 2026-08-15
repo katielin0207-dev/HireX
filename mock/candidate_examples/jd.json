@@ -1,0 +1,32 @@
+{
+  "title": "Python 后端开发工程师",
+  "raw_text": "Python 后端开发工程师\n\n【岗位职责】\n1. 负责公司核心业务系统的后端开发与维护，参与系统架构设计\n2. 负责微服务的设计、开发和优化，保障系统高可用和高性能\n3. 参与数据库设计和优化，编写高效 SQL 及缓存策略\n4. 参与代码评审，指导初中级工程师，推动团队技术成长\n5. 跟进新技术趋势，评估并引入适合团队的技术方案\n\n【任职要求】\n1. 本科及以上学历，计算机相关专业优先\n2. 3年以上 Python 后端开发经验，熟悉 FastAPI 或 Django 框架\n3. 熟悉 MySQL、Redis 等常用存储，有数据库优化经验\n4. 熟悉微服务架构，有服务拆分和治理经验\n5. 熟悉 Docker、Git、CI/CD 等工程化工具\n6. 具备良好的编码习惯和文档习惯\n\n【加分项】\n1. 有 Elasticsearch 使用经验\n2. 有 LLM/AI 应用开发经验（RAG、Prompt 工程等）\n3. 有高并发场景经验（大促、秒杀等）\n4. 有开源项目贡献经验\n5. 了解 Go 语言\n\n【薪资范围】15-25K·14薪\n【工作地点】上海",
+  "requirements": {
+    "hard": {
+      "degree": "本科",
+      "min_years": 3,
+      "must_skills": [
+        "Python",
+        "FastAPI",
+        "Django",
+        "MySQL",
+        "Redis",
+        "Docker",
+        "Git"
+      ],
+      "nice_skills": [
+        "Elasticsearch",
+        "Go",
+        "Kubernetes",
+        "LLM",
+        "RAG"
+      ]
+    },
+    "soft": [
+      "沟通协作",
+      "学习能力",
+      "抗压能力",
+      "代码评审与指导能力"
+    ]
+  }
+}

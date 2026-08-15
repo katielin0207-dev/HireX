@@ -1,0 +1,45 @@
+# Streamlit 主题配置
+#
+# ★ 为什么需要这个文件
+#
+# 之前没有它，Streamlit 的外壳（侧边栏、按钮、输入框、Tab）用默认主题，
+# 而 app 自己的卡片用一套硬编码颜色 —— 两套配色各走各的，
+# 界面上表现为"自定义组件"和"原生组件"明显不是一个系统里的东西。
+#
+# 现在：品牌色在这里定义一次，CSS token 里用同样的值，两边对齐。
+#
+# ★ 显式锁定 base = "light"，理由是实测出来的，不是偏好：
+#
+#   在浏览器里实际测过（系统偏好 = 暗色）：
+#     window.matchMedia('(prefers-color-scheme: dark)').matches  →  true
+#     .stApp 的实际背景色                                        →  rgb(255,255,255)
+#     Streamlit 的 --background-color / --text-color 等变量      →  全是空字符串
+#
+#   两个结论：
+#   1. **Streamlit 不跟随系统暗色偏好**（默认就是 light）
+#   2. **它也不通过 CSS 变量暴露主题** —— 所以自定义 CSS 无法"读"到当前主题
+#
+#   我最初用 @media (prefers-color-scheme: dark) 写了一套暗色 token，
+#   结果就是：系统暗色下我的卡片变深色，而 Streamlit 外壳仍是白的 ——
+#   深色卡片浮在白页上。那正是"界面丑"里最刺眼的一条，而且是我引入的。
+#
+#   Demo / 录屏场景要的是**确定性**：评审打开看到的，必须和我调好的一模一样。
+#   所以这里锁死，并让 CSS 只保留一套与之匹配的亮色 token。
+#
+#   ⚠️ 将来若要做暗色，正确做法是绑定 Streamlit 的主题状态（切换时 DOM 上的
+#      标记），**不能用系统偏好** —— 两者不同源，必然再次脱钩。
+
+[theme]
+base = "light"
+primaryColor = "#4f46e5"
+backgroundColor = "#ffffff"           # 对齐 CSS token 的 --bg
+secondaryBackgroundColor = "#f8fafc"  # 对齐 --surface
+textColor = "#0f172a"                 # 对齐 --text
+font = "sans serif"
+
+[server]
+# 上传简历/JD 用，默认 200MB 对本场景过大
+maxUploadSize = 20
+
+[browser]
+gatherUsageStats = false

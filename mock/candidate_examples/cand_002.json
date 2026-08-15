@@ -1,0 +1,94 @@
+{
+  "id": "cand_002",
+  "name": "孙强",
+  "resume_file": "mock/resumes/04_孙强_中等.txt",
+  "resume_text": "（由 B 在上传/导入时填充完整原文，此处省略）",
+  "resume_parsed": {
+    "education": [
+      {
+        "school": "华中科技大学",
+        "degree": "本科",
+        "major": "软件工程",
+        "start": "2018.09",
+        "end": "2022.06"
+      }
+    ],
+    "experience": [
+      {
+        "company": "武汉某软件公司",
+        "title": "Python 开发工程师",
+        "start": "2022.07",
+        "end": "至今"
+      }
+    ],
+    "skills": [
+      "Python",
+      "Django",
+      "FastAPI",
+      "Celery",
+      "MySQL",
+      "Redis",
+      "Docker",
+      "Git"
+    ],
+    "total_years": 3.1
+  },
+  "match_result": {
+    "overall_score": 68,
+    "hard_score": 78,
+    "soft_score": 55,
+    "recommendation": "待定",
+    "breakdown": {
+      "skills_match": {
+        "score": 75,
+        "reason": "必备技能基本覆盖，但无 ES/K8s 等加分项"
+      },
+      "experience_match": {
+        "score": 62,
+        "reason": "年限达标但为单体应用经验，无微服务和高并发实战"
+      },
+      "education_match": {
+        "score": 100,
+        "reason": "华科本科，符合要求"
+      },
+      "project_relevance": {
+        "score": 55,
+        "reason": "项目为内部 OA/报表，与 JD 核心系统关联度低"
+      }
+    },
+    "matched_points": [
+      "年限达标",
+      "学历符合",
+      "基础技能齐全"
+    ],
+    "gap_points": [
+      "无微服务经验",
+      "无高并发场景",
+      "公司背景一般"
+    ],
+    "summary": "基本素质达标但实战经验与 JD 要求有差距，建议作为备选。"
+  },
+  "risk_report": {
+    "level": "低",
+    "risks": [
+      {
+        "type": "技能存疑",
+        "severity": "low",
+        "detail": "FastAPI 自评'熟悉'但项目均为 Django",
+        "evidence": "框架：Django（熟练）、FastAPI（熟悉）"
+      }
+    ],
+    "interview_focus": [
+      "验证 FastAPI 实际使用深度",
+      "考察微服务架构理解"
+    ]
+  },
+  "interview_eval": null,
+  "status": "screened",
+  "tags": [
+    "Python",
+    "3年经验",
+    "单体应用"
+  ],
+  "updated_at": "2026-08-15T10:05:00"
+}

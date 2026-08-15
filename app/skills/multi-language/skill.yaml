@@ -1,0 +1,11 @@
+skill_id: "multi-language"
+name: "多语言能力"
+category: "assessment"
+trigger: "on_question_generation"
+description: "生成多语言能力评估题（中英文切换/技术文档阅读/跨文化沟通）"
+depends_on:
+  - jd_data
+  - resume_data
+produces:
+  - questions
+active: false
