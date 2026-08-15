@@ -268,17 +268,74 @@ def render_screening():
         st.warning("候选人库为空。请先准备简历数据（演示环境可放置到 sessions/candidates/ 或 mock/resumes/）。")
         return
 
+    # 四维权重与分数线（用户可在筛选前最后微调）
+    default_pct = {"degree": 25, "years": 15, "skills": 35, "soft": 25}
     weights_raw = jd.get("weights", {}) or {}
     if _legacy_weights(jd):
-        st.warning("此 JD 使用旧版权重结构，将按四维默认权重（学历25/年限15/技能35/软实力25）临时替代。请回到「岗位投放」页重新保存以固化。")
-        weights = _normalize_weights({"degree": 25, "years": 15, "skills": 35, "soft": 25})
+        weights_raw = default_pct.copy()
+
+    for d in _WEIGHT_DIMS:
+        key = f"screen_w_{d}"
+        if key not in st.session_state:
+            st.session_state[key] = int(round(weights_raw.get(d, default_pct[d] / 100) * 100))
+
+    th0 = jd.get("thresholds", {}) or {}
+    if "screen_th_pass" not in st.session_state:
+        st.session_state["screen_th_pass"] = int(th0.get("pass", 80))
+    if "screen_th_hold" not in st.session_state:
+        st.session_state["screen_th_hold"] = int(th0.get("hold", 60))
+
+    st.markdown("**四维权重**")
+    for label, dim in [("学历", "degree"), ("年限", "years"),
+                       ("必备技能", "skills"), ("软实力", "soft")]:
+        cL, cR = st.columns([1, 5])
+        cL.markdown(
+            f"<div style='padding-top:12px;color:{TOKENS['text-2']};font-size:.9rem'>"
+            f"{label}</div>",
+            unsafe_allow_html=True,
+        )
+        with cR:
+            st.slider(f"{label}权重 %", 0, 100, key=f"screen_w_{dim}",
+                      label_visibility="collapsed")
+
+    total_pct = sum(st.session_state.get(f"screen_w_{d}", 0) for d in _WEIGHT_DIMS)
+
+    st.markdown("**推荐 / 待定 / 不推进 分数线**")
+    r5a, r5b = st.columns(2)
+    with r5a:
+        st.slider("推荐阈值（总分 ≥ 此值 → 推进）", 50, 100, key="screen_th_pass")
+    with r5b:
+        st.slider("待定阈值（总分 ≥ 此值 → 待定；低于则不推进）",
+                  30, 90, key="screen_th_hold")
+    th_pass = st.session_state["screen_th_pass"]
+    th_hold = st.session_state["screen_th_hold"]
+    if th_pass <= th_hold:
+        st.markdown(
+            f"<div style='color:{TOKENS['danger']};font-size:.85rem'>"
+            f"⚠ 推荐阈值需大于待定阈值，否则会失效</div>",
+            unsafe_allow_html=True)
     else:
-        weights = _normalize_weights(weights_raw)
+        st.markdown(
+            f"<div style='color:{TOKENS['text-2']};font-size:.85rem'>"
+            f"当前分档：≥ <b>{th_pass}</b> 推进 · "
+            f"[<b>{th_hold}</b>, {th_pass}) 待定 · &lt; {th_hold} 不推进"
+            f"</div>",
+            unsafe_allow_html=True)
+
+    weights = _normalize_weights(
+        {d: st.session_state[f"screen_w_{d}"] for d in _WEIGHT_DIMS})
+    thresholds = {"pass": int(th_pass), "hold": int(th_hold)}
 
     st.subheader("批量筛选")
     st.caption(f"候选人库已加载 {len(candidates)} 份简历；点击下方按钮开始匹配评分。")
+    disabled = (not candidates) or (total_pct == 0) or (th_pass <= th_hold)
     if st.button("🚀 开始筛选（硬性规则 + 软性 LLM）", type="primary",
-                 key="run_screen", disabled=not candidates):
+                 key="run_screen", disabled=disabled):
+        # 把当前权重/阈值写回 JD，保证刷新后仍可复用
+        jd["weights"] = weights
+        jd["thresholds"] = thresholds
+        save_jd(jd)
+
         if demo_mode_enabled():
             cached = load_demo_cache("screening_batch")
             if cached:
@@ -291,7 +348,7 @@ def render_screening():
                 st.warning("演示缓存为空，先用正常模式实跑一次")
         else:
             with st.status("筛选中（硬性规则同步 + 软性并发 LLM）...", expanded=True) as s:
-                n = run_screening(jd, weights, jd.get("thresholds"))
+                n = run_screening(jd, weights, thresholds)
                 s.write(f"已完成 {n} 位候选人的匹配评分")
                 s.update(label="筛选完成", state="complete")
             st.success(f"已为 {n} 位候选人生成匹配评价")

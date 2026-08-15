@@ -1,16 +1,12 @@
 """岗位投放模块（MVP 新增页面，由 A 维护）。
 
-负责：岗位任职要求的录入 / AI 拆解已有 JD / 四维权重与分数线设置 /
-       生成最终 JD 描述。生成的 JD 与筛选规则通过 app.shared.store 持久化，
-       供简历筛选页读取使用。
+负责：岗位任职要求的录入 / AI 拆解已有 JD / 生成最终 JD 描述。
+       生成的 JD 与筛选规则通过 app.shared.store 持久化，供简历筛选页读取使用。
 """
 import streamlit as st
 
 from app.shared import call_llm, save_jd, load_jd
 from app.shared.job_utils import (
-    _WEIGHT_DIMS,
-    _DIM_LABEL,
-    _normalize_weights,
     _split_csv,
     _legacy_weights,
 )
@@ -54,15 +50,13 @@ def parse_jd(raw_text: str) -> dict:
     return call_llm(prompt, system=SYSTEM_JD, expect_json=True)
 
 
-def generate_jd_text(structured: dict, weights: dict, basics: dict = None) -> str:
+def generate_jd_text(structured: dict, basics: dict = None) -> str:
     """结构化任职要求 + 基本岗位信息 → 一段自然语言中文招聘 JD 文案。
     严格输出五段：岗位职责 / 学历经验 / 必备技能 / 加分技能 / 软实力。"""
     basics = basics or {}
     title = basics.get("position") or structured.get("title", "岗位")
     h = structured.get("hard", {})
     soft = structured.get("soft", [])
-    w_bits = " · ".join(
-        f"{_DIM_LABEL[d]} {int(weights.get(d, 0) * 100)}%" for d in _WEIGHT_DIMS)
     dept = basics.get("dept", "")
     count = basics.get("count", "")
     level = basics.get("level", "")
@@ -85,7 +79,6 @@ def generate_jd_text(structured: dict, weights: dict, basics: dict = None) -> st
 - 必备技能：{'、'.join(h.get('must_skills', []) or ['—'])}
 - 加分技能：{'、'.join(h.get('nice_skills', []) or ['无'])}
 - 软实力要求：{'、'.join(soft or ['—'])}
-- 筛选权重：{w_bits}
 
 严格按以下 Markdown 五段结构输出（不要多加/少加段落，不要额外解释）：
 
@@ -131,8 +124,6 @@ def render():
     basics0 = jd.get("basics", {}) or {}
     req0 = jd.get("requirements", {}) or {}
     h0 = req0.get("hard", {})
-    w0 = jd.get("weights", {}) or {}
-    th0 = jd.get("thresholds", {}) or {}
 
     def _init(key, val):
         if key not in st.session_state:
@@ -150,11 +141,6 @@ def render():
     _init("jd_nice", "，".join(h0.get("nice_skills", [])))
     _init("jd_soft", "，".join(req0.get("soft", [])))
     _init("jd_raw", jd.get("raw_text", ""))
-    default_pct = {"degree": 25, "years": 15, "skills": 35, "soft": 25}
-    for d in _WEIGHT_DIMS:
-        _init(f"jd_w_{d}", int(round(w0.get(d, default_pct[d] / 100) * 100)))
-    _init("jd_th_pass", int(th0.get("pass", 80)))
-    _init("jd_th_hold", int(th0.get("hold", 60)))
 
     r1a, r1b, r1c = st.columns(3)
     with r1a:
@@ -216,47 +202,7 @@ def render():
 
     st.divider()
 
-    st.markdown("**四维权重**")
-    for label, dim in [("学历", "degree"), ("年限", "years"),
-                       ("必备技能", "skills"), ("软实力", "soft")]:
-        cL, cR = st.columns([1, 5])
-        cL.markdown(
-            f"<div style='padding-top:12px;color:{TOKENS['text-2']};font-size:.9rem'>"
-            f"{label}</div>",
-            unsafe_allow_html=True,
-        )
-        with cR:
-            st.slider(f"{label}权重 %", 0, 100, key=f"jd_w_{dim}",
-                      label_visibility="collapsed")
-
-    total_pct = sum(st.session_state.get(f"jd_w_{d}", 0) for d in _WEIGHT_DIMS)
-
-    st.markdown("**推荐 / 待定 / 不推进 分数线**")
-    r5a, r5b = st.columns(2)
-    with r5a:
-        st.slider("推荐阈值（总分 ≥ 此值 → 推进）", 50, 100, key="jd_th_pass")
-    with r5b:
-        st.slider("待定阈值（总分 ≥ 此值 → 待定；低于则不推进）",
-                  30, 90, key="jd_th_hold")
-    th_pass = st.session_state["jd_th_pass"]
-    th_hold = st.session_state["jd_th_hold"]
-    if th_pass <= th_hold:
-        st.markdown(
-            f"<div style='color:{TOKENS['danger']};font-size:.85rem'>"
-            f"⚠ 推荐阈值需大于待定阈值，否则会失效</div>",
-            unsafe_allow_html=True)
-    else:
-        st.markdown(
-            f"<div style='color:{TOKENS['text-2']};font-size:.85rem'>"
-            f"当前分档：≥ <b>{th_pass}</b> 推进 · "
-            f"[<b>{th_hold}</b>, {th_pass}) 待定 · &lt; {th_hold} 不推进"
-            f"</div>",
-            unsafe_allow_html=True)
-
-    st.markdown("")
-    disabled = (total_pct == 0) or (th_pass <= th_hold)
-    if st.button("📝 生成JD描述", type="primary",
-                 key="gen_jd_final", disabled=disabled):
+    if st.button("📝 生成JD描述", type="primary", key="gen_jd_final"):
         basics = {
             "position": st.session_state["jd_position"].strip(),
             "dept": st.session_state["jd_dept"].strip(),
@@ -275,14 +221,10 @@ def render():
             },
             "soft": _split_csv(st.session_state["jd_soft"]),
         }
-        weights = _normalize_weights(
-            {d: st.session_state[f"jd_w_{d}"] for d in _WEIGHT_DIMS})
-        thresholds = {"pass": int(th_pass), "hold": int(th_hold)}
-
         with st.status("生成 JD 描述中...", expanded=True) as s:
             s.write("调用 LLM 把结构化要求扩写为五段招聘文案...")
             try:
-                jd_text = generate_jd_text(req, weights, basics)
+                jd_text = generate_jd_text(req, basics)
                 s.update(label="JD 描述已生成", state="complete")
             except Exception as e:
                 jd_text = f"> ⚠ LLM 生成失败：{e}\n>\n> 请手动补写 JD 文案。"
@@ -292,8 +234,6 @@ def render():
             "title": req["title"],
             "basics": basics,
             "requirements": req,
-            "weights": weights,
-            "thresholds": thresholds,
             "jd_text_generated": jd_text,
             "raw_text": st.session_state.get("jd_raw", ""),
         })
@@ -301,14 +241,12 @@ def render():
         st.rerun()
 
     # 生成后直接在按钮下方展示最终 JD 描述，可编辑保存
-    jd = load_jd() or {}
+        jd = load_jd() or {}
     jd_text = jd.get("jd_text_generated", "")
     if jd_text:
         req = jd.get("requirements", {})
         h = req.get("hard", {})
-        w = jd.get("weights", {}) or {}
         basics = jd.get("basics", {}) or {}
-        th = jd.get("thresholds", {}) or {}
         must_preview = "、".join(h.get("must_skills", [])[:3]) or "—"
         line1 = " · ".join(x for x in [
             f"**{basics.get('position') or req.get('title', '岗位')}**",
@@ -322,12 +260,8 @@ def render():
             f"≥{int(h.get('min_years', 0) or 0)} 年",
             f"必备：{must_preview}",
         ])
-        line3 = "权重 " + " / ".join(
-            f"{_DIM_LABEL[d]} {int(w.get(d, 0) * 100)}%" for d in _WEIGHT_DIMS)
-        if th:
-            line3 += f" · 分档 ≥{th.get('pass', 80)} 推进 / ≥{th.get('hold', 60)} 待定"
         st.caption(line1)
-        st.caption(line2 + " · " + line3)
+        st.caption(line2)
 
         edited = st.text_area(
             "招聘文案（Markdown，可编辑）",
