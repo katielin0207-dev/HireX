@@ -14,26 +14,157 @@ from app.shared.job_utils import (
     _split_csv,
     _legacy_weights,
 )
+from app.shared.jobs import JOB_CATEGORIES, load_jobs
 from app.ui import page_header, section
 from app.ui.theme import TOKENS
 
 SYSTEM_JD = "你是资深 HR 招聘专家，善于把岗位描述拆解为结构化任职要求。只输出 JSON。"
 SYSTEM_JD_TEXT = "你是资深 HR，把结构化任职要求扩写为一段专业、简洁、可直接发布的中文招聘 JD 文案，使用 Markdown 格式。"
+SYSTEM_JOB_PROFILE = (
+    "你是海信容声家电制造企业的资深招聘专家。根据岗位模板完善岗位画像，"
+    "不得虚构企业制度、薪资或无法验证的资质要求，只输出合法 JSON。"
+)
 
-# Demo 模拟数据（正式环境从北森读取；比赛 Demo 用这份）
-_MOCK_BASICS = {
-    "jd_position": "质量工程师",
-    "jd_dept": "质量部",
-    "jd_count": 2,
-    "jd_level": "P5",
-    "jd_location": "上海",
-    "jd_base_req": "负责产品质量管控，参与供应商审核与不良品 8D 分析。",
-    "jd_degree": "本科",
-    "jd_years": 3,
-    "jd_must": "ISO 9001, 8D, FMEA, SPC",
-    "jd_nice": "六西格玛绿带, APQP",
-    "jd_soft": "沟通协作, 数据分析, 抗压能力",
-}
+def _responsibilities_from_jd(jd_text: str) -> list[str]:
+    """从模板 JD 的岗位职责段提取要点。"""
+    match = re.search(r"##\s*岗位职责\s*\n([\s\S]*?)(?=\n##|\Z)", jd_text or "")
+    if not match:
+        return []
+    return [line.lstrip("- ").strip() for line in match.group(1).splitlines()
+            if line.strip().startswith("-")]
+
+
+def _template_job_profile(job: dict) -> dict:
+    """岗位模板转成岗位创建页使用的统一画像结构。"""
+    hard = job.get("hard") or {}
+    responsibilities = _responsibilities_from_jd(job.get("jd_text", ""))
+    base_requirements = "；".join(responsibilities[:2]) or f"负责{job.get('title', '岗位')}相关工作与结果交付。"
+    return {
+        "title": job.get("title", ""),
+        "dept": job.get("dept", ""),
+        "location": job.get("location", ""),
+        "level": job.get("level", ""),
+        "count": int(job.get("count", 1) or 1),
+        "base_requirements": base_requirements,
+        "hard": {
+            "degree": hard.get("degree", "本科"),
+            "min_years": int(hard.get("min_years", 0) or 0),
+            "must_skills": list(hard.get("must_skills") or []),
+            "nice_skills": list(hard.get("nice_skills") or []),
+        },
+        "soft": list(job.get("soft") or []),
+        "responsibilities": responsibilities,
+        "role_summary": f"{job.get('category', '招聘岗位')} · {job.get('title', '')}",
+    }
+
+
+def generate_job_profile(job: dict) -> tuple[dict, bool]:
+    """基于岗位模板生成可编辑的初步岗位画像；返回 (画像, 是否使用AI)。"""
+    fallback = _template_job_profile(job)
+    if demo_mode_enabled() or not settings.is_configured:
+        return fallback, False
+
+    hard = job.get("hard") or {}
+    prompt = f"""请完善以下企业招聘岗位的初步岗位画像。
+
+【岗位模板】
+- 岗位：{job.get('title', '')}
+- 岗位类别：{job.get('category', '')}
+- 部门：{job.get('dept', '')}
+- 地点：{job.get('location', '')}
+- 职级：{job.get('level', '')}
+- 学历：{hard.get('degree', '不限')}
+- 年限：{hard.get('min_years', 0)} 年
+- 必备技能：{'、'.join(hard.get('must_skills', []))}
+- 加分技能：{'、'.join(hard.get('nice_skills', []))}
+- 软实力：{'、'.join(job.get('soft', []))}
+- 现有JD：{(job.get('jd_text') or '')[:1600]}
+
+输出 JSON：
+{{
+  "title": "岗位名称",
+  "dept": "所属部门",
+  "location": "工作地点",
+  "level": "职级",
+  "count": 招聘人数数字,
+  "base_requirements": "一段80字以内的岗位目标与核心工作概述",
+  "hard": {{
+    "degree": "学历要求",
+    "min_years": 最低年限数字,
+    "must_skills": ["4-6项可核验的必备技能"],
+    "nice_skills": ["2-4项加分技能"]
+  }},
+  "soft": ["3-5项与岗位场景相关的软实力"],
+  "responsibilities": ["3-5条具体岗位职责"],
+  "role_summary": "一句话岗位画像"
+}}"""
+    try:
+        result = call_llm(prompt, system=SYSTEM_JOB_PROFILE, expect_json=True)
+        if not isinstance(result, dict):
+            return fallback, False
+        result_hard = result.get("hard") if isinstance(result.get("hard"), dict) else {}
+        profile = {
+            **fallback,
+            "title": str(result.get("title") or fallback["title"]),
+            "dept": str(result.get("dept") or fallback["dept"]),
+            "location": str(result.get("location") or fallback["location"]),
+            "level": str(result.get("level") or fallback["level"]),
+            "count": int(result.get("count") or fallback["count"]),
+            "base_requirements": str(result.get("base_requirements") or fallback["base_requirements"])[:240],
+            "hard": {
+                "degree": str(result_hard.get("degree") or fallback["hard"]["degree"]),
+                "min_years": int(result_hard.get("min_years") or fallback["hard"]["min_years"]),
+                "must_skills": [str(x) for x in (result_hard.get("must_skills") or fallback["hard"]["must_skills"])][:8],
+                "nice_skills": [str(x) for x in (result_hard.get("nice_skills") or fallback["hard"]["nice_skills"])][:6],
+            },
+            "soft": [str(x) for x in (result.get("soft") or fallback["soft"])][:6],
+            "responsibilities": [str(x) for x in (result.get("responsibilities") or fallback["responsibilities"])][:6],
+            "role_summary": str(result.get("role_summary") or fallback["role_summary"])[:120],
+        }
+        return profile, True
+    except Exception:
+        return fallback, False
+
+
+def _profile_payload(profile: dict) -> tuple[dict, dict]:
+    """岗位画像转换为现有 JD 数据契约。"""
+    hard = profile.get("hard") or {}
+    basics = {
+        "position": profile.get("title", ""),
+        "dept": profile.get("dept", ""),
+        "count": int(profile.get("count", 1) or 1),
+        "level": profile.get("level", ""),
+        "location": profile.get("location", ""),
+        "base_requirements": profile.get("base_requirements", ""),
+    }
+    requirements = {
+        "title": profile.get("title", "") or "岗位",
+        "hard": {
+            "degree": hard.get("degree", "本科"),
+            "min_years": int(hard.get("min_years", 0) or 0),
+            "must_skills": list(hard.get("must_skills") or []),
+            "nice_skills": list(hard.get("nice_skills") or []),
+        },
+        "soft": list(profile.get("soft") or []),
+    }
+    return basics, requirements
+
+
+def _profile_form_seed(profile: dict) -> dict:
+    hard = profile.get("hard") or {}
+    return {
+        "jd_position": profile.get("title", ""),
+        "jd_dept": profile.get("dept", ""),
+        "jd_count": int(profile.get("count", 1) or 1),
+        "jd_level": profile.get("level", ""),
+        "jd_location": profile.get("location", ""),
+        "jd_base_req": profile.get("base_requirements", ""),
+        "jd_degree": hard.get("degree", "本科"),
+        "jd_years": int(hard.get("min_years", 0) or 0),
+        "jd_must": "，".join(hard.get("must_skills") or []),
+        "jd_nice": "，".join(hard.get("nice_skills") or []),
+        "jd_soft": "，".join(profile.get("soft") or []),
+    }
 
 
 def _local_parse_jd(raw_text: str) -> dict:
@@ -178,7 +309,7 @@ def _apply_form_seed():
 
 def render():
     """岗位投放页主渲染：任职信息 → 已有 JD 拆解 → 生成 JD → 编辑发布。"""
-    page_header("岗位投放", "填写任职要求 → AI 生成 JD → 编辑发布", "📌")
+    page_header("岗位创建", "选择岗位 → AI 生成初步画像 → 人工确认发布", "📌")
 
     _apply_form_seed()
 
@@ -207,44 +338,155 @@ def render():
     _init("jd_soft", "，".join(req0.get("soft", [])))
     _init("jd_raw", jd.get("raw_text", ""))
     _init("_jd_editor_visible", False)
+    _init("jd_catalog_category", "当前岗位")
+    _init("_jd_selected_job_applied", "")
+    _init("_jd_generation_origin", jd.get("generation_origin", "人工录入"))
 
-    # ── 基本岗位信息 ────────────────────────────────────────
-    head_L, head_R = st.columns([4, 1])
-    with head_L:
-        section("基本岗位信息", "正式环境从北森读取；Demo 可用示例数据一键填充")
-    with head_R:
-        if st.button("📥 用 Demo 数据", key="btn_seed_mock", use_container_width=True):
-            st.session_state["_jd_form_seed"] = dict(_MOCK_BASICS)
-            st.rerun()
+    # ── 岗位目录选择 + AI 自动生成 ───────────────────────────
+    catalog_jobs = load_jobs()
+    jobs_by_id = {job["id"]: job for job in catalog_jobs}
+    # 页面文案严格按业务确认版本展示；内部仍兼容历史数据中的空格写法。
+    category_options = [
+        "当前岗位",
+        "工程师/技术岗",
+        "制造/工艺岗",
+        "质量/IE方向",
+        "职能/非技术岗",
+        "高风险复核池",
+    ]
+    section("选择招聘岗位", "先选择岗位范围，再搜索具体岗位；选择后自动生成初步岗位画像")
+    category_col, select_col, refresh_col = st.columns([1.35, 2.65, 1], gap="medium")
+    with category_col:
+        selected_category = st.selectbox(
+            "岗位范围",
+            options=category_options,
+            key="jd_catalog_category",
+        )
 
-    r1a, r1b, r1c = st.columns(3)
-    with r1a:
-        st.text_input("岗位", key="jd_position", placeholder="例：质量工程师")
-    with r1b:
-        st.text_input("所属部门", key="jd_dept", placeholder="例：质量部")
-    with r1c:
-        st.number_input("招聘人数", min_value=1, step=1, key="jd_count")
-    r2a, r2b, r2c = st.columns(3)
-    with r2a:
-        st.text_input("职级", key="jd_level", placeholder="例：P5 / T3")
-    with r2b:
-        st.text_input("工作地点", key="jd_location", placeholder="例：上海")
-    with r2c:
-        st.number_input("最低年限（年）", min_value=0, step=1, key="jd_years")
-    st.text_input("学历要求", key="jd_degree", placeholder="例：本科 / 硕士")
-    st.text_area("基本任职要求（一句话概述岗位内容）", key="jd_base_req", height=68)
+    data_category = (
+        "质量/IE 方向" if selected_category == "质量/IE方向" else selected_category
+    )
 
-    # ── 技能与软实力 ────────────────────────────────────────
-    section("技能与软实力", "AI 会根据下面这几项生成完整招聘 JD")
-    r4a, r4b = st.columns(2)
-    with r4a:
-        st.text_input("必备技能（逗号分隔）", key="jd_must",
-                      placeholder="例：ISO 9001, 8D, FMEA")
-    with r4b:
-        st.text_input("加分技能（逗号分隔，不参与权重）",
-                      key="jd_nice", placeholder="例：六西格玛, APQP")
-    st.text_input("软实力要求（逗号分隔）", key="jd_soft",
-                  placeholder="例：沟通协作, 数据分析, 抗压能力")
+    if selected_category == "当前岗位":
+        available_jobs = [job for job in catalog_jobs if job.get("id") == "published_jd"]
+    else:
+        available_jobs = [
+            job for job in catalog_jobs
+            if job.get("id") != "published_jd" and job.get("category") == data_category
+        ]
+    available_ids = [job["id"] for job in available_jobs]
+    # 每个岗位范围使用独立控件状态，避免切换分类后残留上一类岗位。
+    job_select_key = f"jd_catalog_job_id__{selected_category}"
+    if st.session_state.get(job_select_key) not in ([""] + available_ids):
+        st.session_state[job_select_key] = ""
+
+    with select_col:
+        selected_job_id = st.selectbox(
+            "具体岗位",
+            options=[""] + available_ids,
+            format_func=lambda job_id: (
+                ("当前没有已发布岗位" if selected_category == "当前岗位" else "搜索或选择具体岗位")
+                if not job_id else jobs_by_id[job_id].get("title", "")
+            ),
+            key=job_select_key,
+            disabled=not available_ids,
+        )
+    with refresh_col:
+        st.caption("需要不同版本？")
+        regenerate = st.button(
+            "重新生成",
+            use_container_width=True,
+            disabled=not selected_job_id,
+            key="regenerate_selected_job",
+        )
+
+    if selected_category == "高风险复核池":
+        st.caption("高风险复核池用于候选人复核，不属于招聘岗位，因此不会生成 JD。")
+
+    selection_changed = (
+        selected_job_id
+        and selected_job_id != st.session_state.get("_jd_selected_job_applied")
+    )
+    if selected_job_id and (selection_changed or regenerate):
+        selected_job = jobs_by_id[selected_job_id]
+        with st.status("正在生成岗位初步画像...", expanded=True) as status:
+            status.write("读取企业岗位模板与岗位类别...")
+            profile, used_ai = generate_job_profile(selected_job)
+            basics, requirements = _profile_payload(profile)
+            status.write("生成岗位描述、必备技能与软实力要求...")
+            try:
+                jd_text = generate_jd_text(requirements, basics)
+            except Exception:
+                jd_text = _local_jd_text(requirements, basics)
+            origin = "AI 初步生成" if used_ai else "岗位模板初步生成"
+            save_jd({
+                "title": requirements["title"],
+                "basics": basics,
+                "requirements": requirements,
+                "jd_text_generated": jd_text,
+                "raw_text": selected_job.get("jd_text", ""),
+                "source_job_id": selected_job_id,
+                "generation_origin": origin,
+                "generation_status": "draft",
+                "role_summary": profile.get("role_summary", ""),
+                "responsibilities": profile.get("responsibilities", []),
+            })
+            st.session_state["_jd_form_seed"] = _profile_form_seed(profile)
+            st.session_state["_jd_selected_job_applied"] = selected_job_id
+            st.session_state["_jd_generation_origin"] = origin
+            st.session_state["_jd_editor_visible"] = True
+            st.session_state["jd_text_edit"] = jd_text
+            status.update(label=f"{origin}完成，请检查并修改", state="complete")
+        st.rerun()
+
+    if st.session_state.get("_jd_selected_job_applied"):
+        origin = st.session_state.get("_jd_generation_origin", "初步生成")
+        st.info(f"✨ **{origin}**　以下内容尚未发布，可由 HR 修改确认。")
+
+    # ── 紧凑编辑区：基本信息 + 技能软实力 ───────────────────
+    with st.container(border=True):
+        basic_col, skill_col = st.columns([1.05, 0.95], gap="large")
+        with basic_col:
+            section("基本岗位信息", "AI 已带出初始值，可直接修改")
+            r1a, r1b = st.columns(2)
+            with r1a:
+                st.text_input("岗位", key="jd_position", placeholder="例：质量工程师")
+            with r1b:
+                st.text_input("所属部门", key="jd_dept", placeholder="例：质量部")
+            r2a, r2b = st.columns(2)
+            with r2a:
+                st.text_input("职级", key="jd_level", placeholder="例：P5 / T3")
+            with r2b:
+                st.text_input("工作地点", key="jd_location", placeholder="例：青岛")
+            r3a, r3b, r3c = st.columns(3)
+            with r3a:
+                st.number_input("招聘人数", min_value=1, step=1, key="jd_count")
+            with r3b:
+                st.number_input("最低年限", min_value=0, step=1, key="jd_years")
+            with r3c:
+                st.text_input("学历", key="jd_degree", placeholder="本科")
+            st.text_area("岗位目标与核心工作", key="jd_base_req", height=96)
+
+        with skill_col:
+            section("技能与软实力", "来源于岗位模板与 AI 岗位画像")
+            st.text_area(
+                "必备技能（逗号分隔）",
+                key="jd_must",
+                height=76,
+                placeholder="例：ISO 9001, 8D, FMEA",
+            )
+            st.text_area(
+                "加分技能（逗号分隔）",
+                key="jd_nice",
+                height=76,
+                placeholder="例：六西格玛, APQP",
+            )
+            st.text_area(
+                "软实力要求（逗号分隔）",
+                key="jd_soft",
+                height=76,
+                placeholder="例：沟通协作, 数据分析, 抗压能力",
+            )
 
     with st.expander("▼ 已有 JD？粘贴一键拆解自动填充", expanded=False):
         st.text_area(
@@ -311,17 +553,29 @@ def render():
             "requirements": req,
             "jd_text_generated": jd_text,
             "raw_text": st.session_state.get("jd_raw", ""),
+            "source_job_id": jd.get("source_job_id", ""),
+            "generation_origin": (
+                "AI 初步生成"
+                if settings.is_configured and not demo_mode_enabled()
+                else "岗位模板初步生成"
+            ),
+            "generation_status": "draft",
         })
+        st.session_state["_jd_generation_origin"] = (
+            "AI 初步生成"
+            if settings.is_configured and not demo_mode_enabled()
+            else "岗位模板初步生成"
+        )
         st.session_state["_jd_editor_visible"] = True
         st.success("已生成 JD 描述，可在下方查看并编辑")
         st.rerun()
 
-    # 生成后直接在按钮下方展示最终 JD 描述，可编辑发布
+    # 生成后直接在按钮下方展示初步 JD 描述，可编辑发布
     if st.session_state.get("_jd_editor_visible"):
         jd = load_jd() or {}
         jd_text = jd.get("jd_text_generated", "")
         if jd_text:
-            section("最终 JD 文案", "可手工微调后一键发布")
+            section("初步 JD 文案", "AI 初步生成，可由 HR 微调后发布")
             req = jd.get("requirements", {})
             h = req.get("hard", {})
             basics = jd.get("basics", {}) or {}
@@ -349,6 +603,8 @@ def render():
             )
             if st.button("💾 发布JD", key="save_jd_text"):
                 jd["jd_text_generated"] = edited
+                jd["generation_status"] = "published"
+                jd["confirmed_by"] = "HR 人工确认"
                 save_jd(jd)
                 st.session_state["current_job_id"] = "published_jd"
                 st.success("已发布 JD，并设为当前筛选岗位")
