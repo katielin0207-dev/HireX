@@ -1,0 +1,402 @@
+{
+  "id": "cand_吴磊",
+  "name": "吴磊",
+  "resume_text": "吴磊\n后端开发工程师 | 男 | 24岁 | 西安\n电话：138-0000-0006  邮箱：wulei@example.com\n求职意向：Python 后端开发工程师（10-16K）\n\n━━━━━━━━━━━━━━━━━━━━━━━━\n教育背景\n━━━━━━━━━━━━━━━━━━━━━━━━\n2019.09 - 2023.06   西安电子科技大学   计算机科学与技术   本科\n\n━━━━━━━━━━━━━━━━━━━━━━━━\n工作经历\n━━━━━━━━━━━━━━━━━━━━━━━━\n2023.07 - 至今      西安某互联网公司      Python 后端开发工程师\n· 参与内容推荐系统后端开发，FastAPI + MongoDB。\n· 负责用户行为日志采集接口，日均写入 5000 万条。\n· 使用 Redis 做热点内容缓存。\n· 参与 ES 集群日常维护。\n\n━━━━━━━━━━━━━━━━━━━━━━━━\n项目经历\n━━━━━━━━━━━━━━━━━━━━━━━━\n【推荐AB实验平台】2024.01 - 2024.06    参与开发\n支持推荐算法多组实验分流与指标看板。\n\n━━━━━━━━━━━━━━━━━━━━━━━━\n专业技能\n━━━━━━━━━━━━━━━━━━━━━━━━\n语言：Python（熟练，2年）、SQL（熟悉）\n框架：FastAPI（熟练）、Django（了解）\n存储：MongoDB、Redis、MySQL（基本）、Elasticsearch（基本）\n工程：Docker、Git\n其他：经验偏浅但成长速度快\n\n━━━━━━━━━━━━━━━━━━━━━━━━\n其他\n━━━━━━━━━━━━━━━━━━━━━━━━\n· 英语 CET-6",
+  "resume_file": "mock/resumes/06_吴磊_中等.txt",
+  "resume_parsed": {
+    "name": "吴磊",
+    "education": [
+      {
+        "school": "西安电子科技大学",
+        "degree": "本科",
+        "major": "计算机科学与技术",
+        "start": "2019.09",
+        "end": "2023.06"
+      }
+    ],
+    "experience": [
+      {
+        "company": "西安某互联网公司",
+        "title": "Python 后端开发工程师",
+        "start": "2023.07",
+        "end": "至今"
+      }
+    ],
+    "skills": [
+      "Python",
+      "SQL",
+      "FastAPI",
+      "Django",
+      "MongoDB",
+      "Redis",
+      "MySQL",
+      "Elasticsearch",
+      "Docker",
+      "Git"
+    ],
+    "total_years": 1
+  },
+  "status": "new",
+  "tags": [
+    "Python",
+    "SQL",
+    "FastAPI",
+    "Django",
+    "MongoDB",
+    "Redis",
+    "MySQL",
+    "Elasticsearch",
+    "Docker",
+    "Git"
+  ],
+  "updated_at": "2026-08-15T09:56:27",
+  "match_result": {
+    "overall_score": 50,
+    "hard_score": 45,
+    "soft_score": 65,
+    "recommendation": "不推进",
+    "weights_used": {
+      "degree": 0.297029702970297,
+      "years": 0.1188118811881188,
+      "skills": 0.33663366336633666,
+      "soft": 0.24752475247524752
+    },
+    "breakdown": {
+      "education_match": {
+        "score": 100,
+        "reason": "要求本科，候选人最高1级",
+        "weight": 0.297029702970297
+      },
+      "experience_match": {
+        "score": 33,
+        "reason": "要求3.0年，候选人仅1.0年（33分）",
+        "weight": 0.1188118811881188
+      },
+      "skills_match": {
+        "score": 0,
+        "reason": "必备技能命中 0/4，缺失：iso 9001, 8d, fmea, spc",
+        "weight": 0.33663366336633666
+      },
+      "project_relevance": {
+        "score": 65,
+        "reason": "软性素质基本达标，但缺乏具体实例支撑，匹配度中等偏上。",
+        "weight": 0.24752475247524752
+      }
+    },
+    "matched_points": [
+      "具备后端开发经验，通常需要与团队成员协作，体现一定的沟通协作能力",
+      "熟悉SQL和数据库，可能涉及数据处理，具备基础的数据分析意识",
+      "在互联网公司工作，可能面临项目压力，具备一定的抗压能力"
+    ],
+    "gap_points": [
+      "缺乏具体项目细节，无法验证沟通协作的实际表现",
+      "未体现主动进行数据分析或利用数据驱动决策的能力",
+      "无明确证据表明在高压环境下能持续稳定输出",
+      "硬性技能缺失：iso 9001, 8d, fmea, spc"
+    ],
+    "summary": "软性素质基本达标，但缺乏具体实例支撑，匹配度中等偏上。"
+  },
+  "matched_jobs": {
+    "qa_engineer": {
+      "overall_score": 36,
+      "hard_score": 33,
+      "soft_score": 45,
+      "recommendation": "不推进",
+      "weights_used": {
+        "degree": 0.2,
+        "years": 0.2,
+        "skills": 0.4,
+        "soft": 0.2
+      },
+      "breakdown": {
+        "education_match": {
+          "score": 100,
+          "reason": "要求本科，候选人最高1级",
+          "weight": 0.2
+        },
+        "experience_match": {
+          "score": 33,
+          "reason": "要求3.0年，候选人仅1.0年（33分）",
+          "weight": 0.2
+        },
+        "skills_match": {
+          "score": 0,
+          "reason": "必备技能命中 0/4，缺失：iso 9001, 8d, fmea, spc",
+          "weight": 0.4
+        },
+        "project_relevance": {
+          "score": 45,
+          "reason": "候选人软性素质证据有限，数据分析略有支撑，但沟通协作与抗压能力缺乏明确体现，匹配度一般。",
+          "weight": 0.2
+        }
+      },
+      "matched_points": [
+        "具备基本的数据处理能力（SQL、数据库相关技能），可支撑数据分析需求"
+      ],
+      "gap_points": [
+        "缺乏团队协作、跨部门沟通等协作经验描述",
+        "无高压项目或紧急任务处理经历，抗压能力证据不足",
+        "硬性技能缺失：iso 9001, 8d, fmea, spc"
+      ],
+      "summary": "候选人软性素质证据有限，数据分析略有支撑，但沟通协作与抗压能力缺乏明确体现，匹配度一般。",
+      "screen_decision": "待审核",
+      "screen_note": ""
+    },
+    "assembly_engineer": {
+      "overall_score": 40,
+      "hard_score": 33,
+      "soft_score": 60,
+      "recommendation": "不推进",
+      "weights_used": {
+        "degree": 0.15,
+        "years": 0.2,
+        "skills": 0.4,
+        "soft": 0.25
+      },
+      "breakdown": {
+        "education_match": {
+          "score": 100,
+          "reason": "要求本科，候选人最高1级",
+          "weight": 0.15
+        },
+        "experience_match": {
+          "score": 50,
+          "reason": "要求2.0年，候选人仅1.0年（50分）",
+          "weight": 0.2
+        },
+        "skills_match": {
+          "score": 0,
+          "reason": "必备技能命中 0/4，缺失：整机装配, sop, 生产节拍, 工装夹具",
+          "weight": 0.4
+        },
+        "project_relevance": {
+          "score": 60,
+          "reason": "候选人软性素质证据不足，仅从工作稳定性推断责任心，动手能力和沟通协作缺乏具体支撑。",
+          "weight": 0.25
+        }
+      },
+      "matched_points": [
+        "责任心：有稳定工作经历，持续至今"
+      ],
+      "gap_points": [
+        "动手能力：简历未体现具体项目或实践细节",
+        "沟通协作：无团队协作或跨部门沟通的明确描述",
+        "硬性技能缺失：整机装配, sop, 生产节拍, 工装夹具"
+      ],
+      "summary": "候选人软性素质证据不足，仅从工作稳定性推断责任心，动手能力和沟通协作缺乏具体支撑。",
+      "screen_decision": "待审核",
+      "screen_note": ""
+    },
+    "supply_chain": {
+      "overall_score": 41,
+      "hard_score": 40,
+      "soft_score": 45,
+      "recommendation": "不推进",
+      "weights_used": {
+        "degree": 0.2,
+        "years": 0.2,
+        "skills": 0.35,
+        "soft": 0.25
+      },
+      "breakdown": {
+        "education_match": {
+          "score": 100,
+          "reason": "要求本科，候选人最高1级",
+          "weight": 0.2
+        },
+        "experience_match": {
+          "score": 50,
+          "reason": "要求2.0年，候选人仅1.0年（50分）",
+          "weight": 0.2
+        },
+        "skills_match": {
+          "score": 0,
+          "reason": "必备技能命中 0/4，缺失：mrp, erp, excel, sap",
+          "weight": 0.35
+        },
+        "project_relevance": {
+          "score": 45,
+          "reason": "候选人软性素质证据不足，仅从技能推断出数据敏感度，沟通协调和抗压能力需进一步验证。",
+          "weight": 0.25
+        }
+      },
+      "matched_points": [
+        "具备一定的数据敏感度，因日常使用SQL、MySQL等数据库工具"
+      ],
+      "gap_points": [
+        "缺乏明确的沟通协调经验，如跨部门协作或项目管理",
+        "抗压能力未体现，无高压项目或紧急任务处理经历",
+        "硬性技能缺失：mrp, erp, excel, sap"
+      ],
+      "summary": "候选人软性素质证据不足，仅从技能推断出数据敏感度，沟通协调和抗压能力需进一步验证。",
+      "screen_decision": "待审核",
+      "screen_note": ""
+    },
+    "python_backend": {
+      "overall_score": 81,
+      "hard_score": 87,
+      "soft_score": 65,
+      "recommendation": "推进",
+      "weights_used": {
+        "degree": 0.15,
+        "years": 0.15,
+        "skills": 0.45,
+        "soft": 0.25
+      },
+      "breakdown": {
+        "education_match": {
+          "score": 100,
+          "reason": "要求本科，候选人最高1级",
+          "weight": 0.15
+        },
+        "experience_match": {
+          "score": 33,
+          "reason": "要求3.0年，候选人仅1.0年（33分）",
+          "weight": 0.15
+        },
+        "skills_match": {
+          "score": 100,
+          "reason": "必备技能命中 4/4，全部命中",
+          "weight": 0.45
+        },
+        "project_relevance": {
+          "score": 65,
+          "reason": "技术钻研和学习能力有一定体现，但沟通协作证据不足，整体软性匹配中等偏上。",
+          "weight": 0.25
+        }
+      },
+      "matched_points": [
+        "具备技术钻研精神，掌握多种技术栈，体现持续学习能力"
+      ],
+      "gap_points": [
+        "缺乏团队协作和沟通的具体证据",
+        "工作经历单一，软性素质体现不足"
+      ],
+      "summary": "技术钻研和学习能力有一定体现，但沟通协作证据不足，整体软性匹配中等偏上。",
+      "screen_decision": "待审核",
+      "screen_note": "",
+      "interview_questions": [
+        {
+          "pool": "doubt",
+          "competency": "经历一致性",
+          "question": "您的简历显示您于2023年7月入职，至今约1年，但岗位要求至少3年经验。请说明您如何满足这一要求？是否有其他未列出的实习或项目经历？",
+          "followUps": [
+            "请按时间顺序说明您从入学到现在的所有工作经历（包括实习、兼职）及时间线。",
+            "您是否有可核验的项目或交付物能证明您的能力达到3年经验水平？"
+          ],
+          "anchors": {
+            "5": "能清晰列出所有经历，包括实习或项目，并说明其与岗位的关联，提供可验证的成果。",
+            "3": "能说明主要经历，但时间线有模糊或依赖单一工作经历。",
+            "1": "无法解释年限差距，或提供的信息与简历矛盾。"
+          },
+          "redFlags": [
+            "回避问题或含糊其辞",
+            "时间线矛盾",
+            "无法提供任何证明"
+          ],
+          "expectedMinutes": 5
+        },
+        {
+          "pool": "doubt",
+          "competency": "沟通协作",
+          "question": "您的简历中未提及团队协作或跨部门沟通经历。请分享一个您与前端、移动端或产品经理协作完成任务的例子，具体说明您的角色和贡献。",
+          "followUps": [
+            "在协作中遇到需求分歧或技术冲突时，您如何沟通解决？",
+            "您如何确保接口设计满足多方需求？"
+          ],
+          "anchors": {
+            "5": "能具体描述协作过程，主动推动沟通，有效解决冲突，并量化协作成果。",
+            "3": "能描述协作经历，但角色模糊或缺乏细节。",
+            "1": "无法提供协作案例，或表现出被动沟通。"
+          },
+          "redFlags": [
+            "无协作案例",
+            "归咎他人",
+            "沟通方式单一"
+          ],
+          "expectedMinutes": 5
+        },
+        {
+          "pool": "role",
+          "competency": "FastAPI与异步编程",
+          "question": "请描述您使用FastAPI开发的一个核心接口，包括异步处理、依赖注入和数据库交互的设计。您如何优化其性能？",
+          "followUps": [
+            "在异步任务中如何处理长耗时操作（如调用外部API）？",
+            "您如何设计数据库连接池和事务管理？"
+          ],
+          "anchors": {
+            "5": "能深入解释异步机制、依赖注入原理，并给出性能优化实例（如缓存、并发控制），有数据支撑。",
+            "3": "能描述基本用法，但缺乏深度优化或异常处理细节。",
+            "1": "仅能简单使用FastAPI，无法解释原理或优化。"
+          },
+          "redFlags": [
+            "混淆同步/异步",
+            "无性能优化意识",
+            "忽略事务边界"
+          ],
+          "expectedMinutes": 8
+        },
+        {
+          "pool": "role",
+          "competency": "MySQL与Redis实战",
+          "question": "在订单或设备模块中，您如何设计MySQL表结构并利用Redis提升读写性能？请结合具体业务场景说明。",
+          "followUps": [
+            "如何保证缓存与数据库的一致性？",
+            "当缓存雪崩或穿透时，您的应对策略是什么？"
+          ],
+          "anchors": {
+            "5": "能设计合理表结构（如索引、分表），并清晰阐述缓存策略（如缓存更新模式、过期时间），有实际案例。",
+            "3": "能描述基本用法，但缺乏一致性或高可用考虑。",
+            "1": "仅会简单CRUD，无缓存设计或数据一致性概念。"
+          },
+          "redFlags": [
+            "无索引优化意识",
+            "缓存与数据库不一致",
+            "无高可用方案"
+          ],
+          "expectedMinutes": 8
+        },
+        {
+          "pool": "common",
+          "competency": "技术钻研与学习能力",
+          "question": "请分享一个您主动学习新技术或深入钻研技术问题的经历。您如何选择学习资源并验证学习效果？",
+          "followUps": [
+            "在学习过程中遇到困难，您如何克服？",
+            "您如何将新技术应用到实际项目中？"
+          ],
+          "anchors": {
+            "5": "能展示明确的学习路径，有深度钻研（如源码阅读），并成功应用产生价值。",
+            "3": "能描述学习过程，但缺乏深度或应用成果。",
+            "1": "学习被动或仅停留在表面。"
+          },
+          "redFlags": [
+            "无具体实例",
+            "学习资源单一",
+            "无法说明应用"
+          ],
+          "expectedMinutes": 5
+        },
+        {
+          "pool": "closing",
+          "competency": "动机与期望",
+          "question": "您为什么选择应聘我们公司的P6岗位？您对未来的职业发展有何规划？",
+          "followUps": [
+            "您对家电云平台的技术栈或业务有何了解？",
+            "您期望在团队中承担什么角色？"
+          ],
+          "anchors": {
+            "5": "能结合公司业务和技术方向，表达清晰动机，规划与岗位匹配。",
+            "3": "动机一般，规划模糊。",
+            "1": "动机不明确或与岗位不符。"
+          },
+          "redFlags": [
+            "对岗位无了解",
+            "职业规划不切实际",
+            "只谈薪资"
+          ],
+          "expectedMinutes": 4
+        }
+      ]
+    }
+  }
+}

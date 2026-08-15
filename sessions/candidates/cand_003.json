@@ -1,0 +1,420 @@
+{
+  "id": "cand_003",
+  "name": "马跃",
+  "resume_file": "mock/resumes/08_马跃_风险_经历断层.txt",
+  "resume_text": "（由 B 在上传/导入时填充完整原文，此处省略）",
+  "resume_parsed": {
+    "education": [
+      {
+        "school": "东华大学",
+        "degree": "本科",
+        "major": "软件工程",
+        "start": "2014.09",
+        "end": "2018.06"
+      }
+    ],
+    "experience": [
+      {
+        "company": "上海某科技公司",
+        "title": "后端开发工程师",
+        "start": "2024.06",
+        "end": "至今"
+      },
+      {
+        "company": "某外包公司",
+        "title": "Python 开发工程师",
+        "start": "2020.03",
+        "end": "2021.12"
+      }
+    ],
+    "skills": [
+      "Python",
+      "Django",
+      "FastAPI",
+      "MySQL",
+      "Redis",
+      "Git",
+      "Docker"
+    ],
+    "total_years": 3.5
+  },
+  "match_result": {
+    "overall_score": 56,
+    "hard_score": 55,
+    "soft_score": 60,
+    "recommendation": "不推进",
+    "weights_used": {
+      "degree": 0.297029702970297,
+      "years": 0.1188118811881188,
+      "skills": 0.33663366336633666,
+      "soft": 0.24752475247524752
+    },
+    "breakdown": {
+      "education_match": {
+        "score": 100,
+        "reason": "要求本科，候选人最高1级",
+        "weight": 0.297029702970297
+      },
+      "experience_match": {
+        "score": 100,
+        "reason": "要求3.0年，候选人3.5年",
+        "weight": 0.1188118811881188
+      },
+      "skills_match": {
+        "score": 0,
+        "reason": "必备技能命中 0/4，缺失：iso 9001, 8d, fmea, spc",
+        "weight": 0.33663366336633666
+      },
+      "project_relevance": {
+        "score": 60,
+        "reason": "候选人具备一定的沟通协作基础，但数据分析和抗压能力方面证据较弱，整体软性匹配度中等。",
+        "weight": 0.24752475247524752
+      }
+    },
+    "matched_points": [
+      "具备团队协作经验，能够与不同角色沟通",
+      "有跨公司工作经历，适应不同环境"
+    ],
+    "gap_points": [
+      "缺乏直接的数据分析项目经验",
+      "抗压能力证据不足，需进一步了解",
+      "硬性技能缺失：iso 9001, 8d, fmea, spc"
+    ],
+    "summary": "候选人具备一定的沟通协作基础，但数据分析和抗压能力方面证据较弱，整体软性匹配度中等。"
+  },
+  "risk_report": {
+    "level": "高",
+    "risks": [
+      {
+        "type": "经历断层",
+        "severity": "high",
+        "detail": "2022.01-2024.05 共 2 年 4 个月无工作经历，简历未说明",
+        "evidence": "2020.03-2021.12 某外包公司 → 2024.06 至今，中间无记录"
+      },
+      {
+        "type": "信息存疑",
+        "severity": "medium",
+        "detail": "自述 6 年经验，可核实仅 3.5 年",
+        "evidence": "语言：Python（熟练，自称6年）"
+      },
+      {
+        "type": "信息存疑",
+        "severity": "medium",
+        "detail": "空档期自称'自由职业'但无项目证明",
+        "evidence": "面试中解释为'自由职业'，但无法提供项目证明"
+      }
+    ],
+    "interview_focus": [
+      "必须核实 2022-2024 空档期真实去向",
+      "要求提供空档期收入/社保证明",
+      "技术深度验证（疑似包装）"
+    ]
+  },
+  "interview_eval": null,
+  "status": "risk_checked",
+  "tags": [
+    "Python",
+    "经历断层",
+    "高风险"
+  ],
+  "updated_at": "2026-08-15T09:55:26",
+  "matched_jobs": {
+    "qa_engineer": {
+      "overall_score": 49,
+      "hard_score": 50,
+      "soft_score": 45,
+      "recommendation": "不推进",
+      "weights_used": {
+        "degree": 0.2,
+        "years": 0.2,
+        "skills": 0.4,
+        "soft": 0.2
+      },
+      "breakdown": {
+        "education_match": {
+          "score": 100,
+          "reason": "要求本科，候选人最高1级",
+          "weight": 0.2
+        },
+        "experience_match": {
+          "score": 100,
+          "reason": "要求3.0年，候选人3.5年",
+          "weight": 0.2
+        },
+        "skills_match": {
+          "score": 0,
+          "reason": "必备技能命中 0/4，缺失：iso 9001, 8d, fmea, spc",
+          "weight": 0.4
+        },
+        "project_relevance": {
+          "score": 45,
+          "reason": "候选人软性素质与岗位要求部分匹配，沟通协作有一定基础，但数据分析和抗压能力证据不足。",
+          "weight": 0.2
+        }
+      },
+      "matched_points": [
+        "具备跨团队协作经验，能适应外包环境下的沟通需求"
+      ],
+      "gap_points": [
+        "缺乏明确的数据分析相关项目或成果展示",
+        "工作经历中未体现高压场景下的应对能力",
+        "硬性技能缺失：iso 9001, 8d, fmea, spc"
+      ],
+      "summary": "候选人软性素质与岗位要求部分匹配，沟通协作有一定基础，但数据分析和抗压能力证据不足。",
+      "screen_decision": "待审核",
+      "screen_note": ""
+    },
+    "assembly_engineer": {
+      "overall_score": 52,
+      "hard_score": 47,
+      "soft_score": 70,
+      "recommendation": "不推进",
+      "weights_used": {
+        "degree": 0.15,
+        "years": 0.2,
+        "skills": 0.4,
+        "soft": 0.25
+      },
+      "breakdown": {
+        "education_match": {
+          "score": 100,
+          "reason": "要求本科，候选人最高1级",
+          "weight": 0.15
+        },
+        "experience_match": {
+          "score": 100,
+          "reason": "要求2.0年，候选人3.5年",
+          "weight": 0.2
+        },
+        "skills_match": {
+          "score": 0,
+          "reason": "必备技能命中 0/4，缺失：整机装配, sop, 生产节拍, 工装夹具",
+          "weight": 0.4
+        },
+        "project_relevance": {
+          "score": 70,
+          "reason": "候选人具备较强的动手能力和基本责任心，但沟通协作能力缺乏明确证据，整体软性匹配良好。",
+          "weight": 0.25
+        }
+      },
+      "matched_points": [
+        "具备实际项目开发经验，体现动手能力",
+        "有持续工作经历，体现一定责任心"
+      ],
+      "gap_points": [
+        "简历中未明确体现沟通协作方面的具体事例",
+        "工作经历较短，责任心需进一步验证",
+        "硬性技能缺失：整机装配, sop, 生产节拍, 工装夹具"
+      ],
+      "summary": "候选人具备较强的动手能力和基本责任心，但沟通协作能力缺乏明确证据，整体软性匹配良好。",
+      "screen_decision": "待审核",
+      "screen_note": ""
+    },
+    "supply_chain": {
+      "overall_score": 51,
+      "hard_score": 53,
+      "soft_score": 45,
+      "recommendation": "不推进",
+      "weights_used": {
+        "degree": 0.2,
+        "years": 0.2,
+        "skills": 0.35,
+        "soft": 0.25
+      },
+      "breakdown": {
+        "education_match": {
+          "score": 100,
+          "reason": "要求本科，候选人最高1级",
+          "weight": 0.2
+        },
+        "experience_match": {
+          "score": 100,
+          "reason": "要求2.0年，候选人3.5年",
+          "weight": 0.2
+        },
+        "skills_match": {
+          "score": 0,
+          "reason": "必备技能命中 0/4，缺失：mrp, erp, excel, sap",
+          "weight": 0.35
+        },
+        "project_relevance": {
+          "score": 45,
+          "reason": "候选人软性素质与岗位要求匹配度一般，沟通协调有基础，但数据敏感和抗压能力证据不足。",
+          "weight": 0.25
+        }
+      },
+      "matched_points": [
+        "具备一定的跨团队协作经验，能通过技术沟通推动项目进展"
+      ],
+      "gap_points": [
+        "缺乏数据相关岗位经验，数据敏感度证据不足",
+        "工作经历较短，抗压能力缺乏明确佐证",
+        "硬性技能缺失：mrp, erp, excel, sap"
+      ],
+      "summary": "候选人软性素质与岗位要求匹配度一般，沟通协调有基础，但数据敏感和抗压能力证据不足。",
+      "screen_decision": "待审核",
+      "screen_note": ""
+    },
+    "python_backend": {
+      "overall_score": 91,
+      "hard_score": 100,
+      "soft_score": 65,
+      "recommendation": "推进",
+      "weights_used": {
+        "degree": 0.15,
+        "years": 0.15,
+        "skills": 0.45,
+        "soft": 0.25
+      },
+      "breakdown": {
+        "education_match": {
+          "score": 100,
+          "reason": "要求本科，候选人最高1级",
+          "weight": 0.15
+        },
+        "experience_match": {
+          "score": 100,
+          "reason": "要求3.0年，候选人3.5年",
+          "weight": 0.15
+        },
+        "skills_match": {
+          "score": 100,
+          "reason": "必备技能命中 4/4，全部命中",
+          "weight": 0.45
+        },
+        "project_relevance": {
+          "score": 65,
+          "reason": "候选人具备基础技术钻研和协作潜力，但学习能力和沟通协作的显性证据不足，软性匹配中等偏上。",
+          "weight": 0.25
+        }
+      },
+      "matched_points": [
+        "具备后端开发经验，能体现一定的技术钻研和问题解决能力",
+        "有外包和正式公司经历，可能具备跨团队沟通协作经验"
+      ],
+      "gap_points": [
+        "简历中未体现主动学习新技术或持续学习的证据",
+        "缺乏具体项目协作细节，难以评估沟通协作深度"
+      ],
+      "summary": "候选人具备基础技术钻研和协作潜力，但学习能力和沟通协作的显性证据不足，软性匹配中等偏上。",
+      "screen_decision": "待审核",
+      "screen_note": "",
+      "interview_questions": [
+        {
+          "pool": "doubt",
+          "competency": "经历一致性核查",
+          "question": "您的简历显示，您在某外包公司担任 Python 开发工程师的时间是 2020.03 至 2021.12，但之后到 2024.06 之间有一段约 2.5 年的空白期。请按时间顺序说明这段空白期的实际情况，包括您的工作、学习或其他活动。",
+          "followUps": [
+            "这段空白期是否有可核验的项目、培训证书或作品？",
+            "您如何向当前雇主解释这段经历？"
+          ],
+          "anchors": {
+            "5": "能清晰、具体地说明空白期的活动，提供可验证的证据（如项目链接、证书、学习记录），且与后续职业发展有逻辑关联。",
+            "3": "能说明空白期的大致情况，但缺乏具体证据或细节，逻辑基本合理。",
+            "1": "无法解释空白期，或解释含糊、前后矛盾，或表现出回避态度。"
+          },
+          "redFlags": [
+            "对空白期避而不谈或情绪明显紧张",
+            "解释与简历其他信息冲突，或无法提供任何可验证的证明"
+          ],
+          "expectedMinutes": 5
+        },
+        {
+          "pool": "doubt",
+          "competency": "学习能力与自我提升",
+          "question": "您的简历中未体现主动学习新技术或持续学习的证据，但岗位要求技术钻研和快速学习。请分享一个您在工作之外主动学习新技术或深入钻研某个技术点的具体例子，包括学习动机、学习过程和应用结果。",
+          "followUps": [
+            "您如何选择学习内容？是出于兴趣还是工作需求？",
+            "这次学习对您的工作或项目产生了什么可衡量的影响？"
+          ],
+          "anchors": {
+            "5": "能清晰描述一个具体的学习案例，展示明确的学习目标、系统的方法（如阅读源码、实践项目）、以及学习成果对工作或项目的实际贡献。",
+            "3": "能描述学习经历，但过程较笼统，成果影响不明确。",
+            "1": "无法提供具体例子，或学习仅停留在表面，无实际应用。"
+          },
+          "redFlags": [
+            "无法举出任何主动学习的例子",
+            "学习内容与岗位技能无关，且未转化为实际能力"
+          ],
+          "expectedMinutes": 5
+        },
+        {
+          "pool": "role",
+          "competency": "FastAPI 与异步编程",
+          "question": "请描述一个您使用 FastAPI 开发的核心接口，说明您如何设计异步处理、数据校验和异常处理，并解释为什么选择这种设计。",
+          "followUps": [
+            "您如何处理数据库会话与异步请求的生命周期？",
+            "如果该接口需要处理大量并发请求，您会如何优化？"
+          ],
+          "anchors": {
+            "5": "能深入解释 FastAPI 的异步机制（如 async/await、事件循环），展示对 Pydantic 校验、依赖注入、异常处理的合理设计，并能结合性能优化提出具体方案。",
+            "3": "能描述接口实现，但设计决策缺乏深度，对异步处理的理解停留在表面。",
+            "1": "无法清晰描述接口实现，或对 FastAPI 核心概念理解错误。"
+          },
+          "redFlags": [
+            "混淆 async 和同步代码，无法解释阻塞问题",
+            "未使用 Pydantic 或异常处理，设计随意"
+          ],
+          "expectedMinutes": 8
+        },
+        {
+          "pool": "role",
+          "competency": "MySQL 与 Redis 综合应用",
+          "question": "在家电云平台中，订单状态需要实时更新并支持高频查询。请设计一个方案，使用 MySQL 和 Redis 实现订单数据的读写分离与缓存策略，并说明如何保证数据一致性。",
+          "followUps": [
+            "如果缓存和数据库不一致，您如何检测和修复？",
+            "在高并发下，如何避免缓存穿透和雪崩？"
+          ],
+          "anchors": {
+            "5": "能设计合理的缓存策略（如 Cache-Aside、延迟双删），解释一致性保证机制，并针对穿透、雪崩提出具体措施（如布隆过滤器、随机过期时间）。",
+            "3": "能提出基本缓存方案，但一致性处理不完善，对极端场景考虑不足。",
+            "1": "无法设计完整方案，或对 Redis 和 MySQL 的配合使用缺乏理解。"
+          },
+          "redFlags": [
+            "忽略数据一致性，简单认为缓存总能同步",
+            "无法说出缓存穿透、雪崩的解决方案"
+          ],
+          "expectedMinutes": 8
+        },
+        {
+          "pool": "common",
+          "competency": "沟通协作",
+          "question": "请分享一次您与前端或移动端开发人员协作，因接口定义或数据格式产生分歧的经历。您是如何推动问题解决并保证项目进度的？",
+          "followUps": [
+            "您当时如何表达自己的观点？是否考虑了对方的立场？",
+            "如果对方坚持己见，您会如何升级处理？"
+          ],
+          "anchors": {
+            "5": "能清晰描述冲突场景，展示主动沟通、换位思考和寻找共赢方案的能力，最终达成一致并保证项目交付。",
+            "3": "能描述协作过程，但解决方式较被动或依赖上级协调。",
+            "1": "无法提供具体例子，或表现出回避冲突、沟通不畅的倾向。"
+          },
+          "redFlags": [
+            "将责任完全归咎于对方，缺乏反思",
+            "没有具体行动，只说‘沟通’但无细节"
+          ],
+          "expectedMinutes": 6
+        },
+        {
+          "pool": "closing",
+          "competency": "求职动机与期望",
+          "question": "您为什么选择应聘我们公司的 Python 后端开发岗位？您对未来的技术发展方向和团队协作有什么期望？",
+          "followUps": [
+            "您对我们公司的业务或技术栈有哪些了解？",
+            "您希望在新岗位上获得哪些成长？"
+          ],
+          "anchors": {
+            "5": "动机明确，与岗位和公司业务高度契合，对技术发展有清晰规划，期望合理。",
+            "3": "动机基本合理，但对公司了解有限，规划较模糊。",
+            "1": "动机不明确，或表现出对岗位缺乏兴趣，期望与岗位严重不符。"
+          },
+          "redFlags": [
+            "只谈薪资或地点，不关心业务和技术",
+            "对公司和岗位一无所知，准备不足"
+          ],
+          "expectedMinutes": 4
+        }
+      ]
+    }
+  }
+}

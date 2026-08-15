@@ -41,7 +41,7 @@ streamlit run app/main.py --server.port 8501
 # 或 ./dev.sh demo     # 演示缓存模式（断网/API 故障时兜底）
 ```
 - DeepSeek API key 放在项目根目录 `.env`（**不进 git**）。
-- 若 clone 后没 `.env`，向 Katie 索取：`sk-350f...`（完整 key 私发）。
+- 若 clone 后没 `.env`，向 Katie 索取 DeepSeek key（完整 key 私发，勿写入任何文档/聊天）。
 
 ## 6. 已知坑（别再踩）
 - **pandas ≥2.1**：`df.style.applymap` 已删除，必须用 `df.style.map`（已修，见 `30fdf73`）。
