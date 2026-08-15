@@ -43,8 +43,10 @@ st.set_page_config(
 from app.ui import inject_theme
 from app.views import analysis as view_analysis
 from app.views import interview as view_interview
+from app.views import interview_eval as view_interview_eval
 from app.views import report as view_report
 from app.views import screening as view_screening
+from app.views import risk as view_risk
 
 inject_theme()
 
@@ -864,6 +866,8 @@ st.markdown(f"""
 NAV = [
     # ★ MVP 主链路入口：A 的简历筛选模块（已完成）
     ("screening", "📋 简历筛选"),
+    ("risk", "⚡ 智能分析"),
+    ("interview_eval", "📝 面试评价"),
     # ── 基座原有页面（analysis/interview/report/skills）：MVP 阶段隐藏，
     #    避免 demo 暴露未完成的基座能力；B/C 模块完成后在此追加各自入口 ──
     # ("analysis",  "📄 " + _t("nav.analysis")),
@@ -889,8 +893,12 @@ if active == "screening":
     tab_screening()
 elif active == "analysis":
     tab_resume_analysis()
+elif active == "risk":
+    view_risk.render()
 elif active == "interview":
     tab_ai_interview()
+elif active == "interview_eval":
+    view_interview_eval.render()
 elif active == "report":
     tab_report()
 elif active == "skills":
