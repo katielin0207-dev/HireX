@@ -29,7 +29,7 @@ inject_theme()
 PAGES = [
     ("screening", "简历筛选", "app.views.screening_flow"),
     ("talent", "人才评价", "app.views.talent"),
-    ("risk", "风险核验", "app.views.risk_flow"),
+    ("risk", "风险核验", "app.views.preoffer"),
 ]
 PAGE_LABELS = {key: label for key, label, _ in PAGES}
 

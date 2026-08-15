@@ -401,24 +401,20 @@ div[data-testid="stRadio"]:has([data-testid="stRadioGroup"][aria-label="主流�
 div[data-testid="stRadio"]:has([data-testid="stRadioGroup"][aria-label="主流程"]) [data-testid="stRadioOption"] > div > div > div:first-child { display:none!important; }
 
 /* 模块一内部流程：覆盖 Streamlit 分段控件的默认紫色。 */
-.st-key-screening_stage [role="radiogroup"],
-.st-key-risk_stage [role="radiogroup"] {
+.st-key-screening_stage [role="radiogroup"] {
     border-color:var(--border-2)!important;
     background:var(--surface-2)!important;
 }
-.st-key-screening_stage button[data-variant="segmented_control"],
-.st-key-risk_stage button[data-variant="segmented_control"] {
+.st-key-screening_stage button[data-variant="segmented_control"] {
     border-color:transparent!important;
     color:var(--text-2)!important;
     box-shadow:none!important;
 }
-.st-key-screening_stage button[data-variant="segmented_control"][data-selected="true"],
-.st-key-risk_stage button[data-variant="segmented_control"][data-selected="true"] {
+.st-key-screening_stage button[data-variant="segmented_control"][data-selected="true"] {
     background:var(--brand)!important;
     border-color:var(--brand)!important;
 }
-.st-key-screening_stage button[data-variant="segmented_control"][data-selected="true"] *,
-.st-key-risk_stage button[data-variant="segmented_control"][data-selected="true"] * {
+.st-key-screening_stage button[data-variant="segmented_control"][data-selected="true"] * {
     color:#fff!important;
 }
 
