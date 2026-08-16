@@ -56,7 +56,7 @@ def _pick_references(bank: dict, max_role: int = 2) -> str:
 
 
 def generate_interview_questions(job: dict, candidate: dict,
-                                 match: dict, count: int = 6) -> dict:
+                                 match: dict, count: int = 4) -> dict:
     """根据岗位 + 候选人 + 匹配结果生成面试题。
 
     job:       岗位定义（haixin_jobs.json 的一条）
@@ -75,22 +75,23 @@ def generate_interview_questions(job: dict, candidate: dict,
 【岗位】{job.get('title', '')} · {job.get('dept', '')} · {job.get('level', '')}
 【硬性要求】学历 {hard.get('degree', '不限')} · 年限 ≥{hard.get('min_years', 0)} 年 · 必备技能 {'、'.join(hard.get('must_skills', [])) or '无'}
 【软性要求】{'、'.join(job.get('soft', [])) or '无'}
-【JD 摘要】{(job.get('jd_text', '') or '')[:600]}
+【JD 摘要】{(job.get('jd_text', '') or '')[:400]}
 
 【候选人】{candidate.get('name', '')}
-【简历要点】{json.dumps(parsed, ensure_ascii=False)[:1200]}
+【简历要点】{json.dumps(parsed, ensure_ascii=False)[:800]}
 【AI 匹配评价】{match.get('summary', '')}
-【匹配点】{'；'.join(matched[:5]) or '无'}
-【疑点 / 差距】{'；'.join(gaps[:5]) or '无'}
+【匹配点】{'；'.join(matched[:3]) or '无'}
+【疑点 / 差距】{'；'.join(gaps[:3]) or '无'}
 
 【题库风格参考】（学习其追问方式与评分锚点写法，不要照抄题目）
 {_pick_references(bank)}
 
-出题要求：
-1. 共 {count} 题，按面试顺序排列，结构为：疑点核查（doubt，针对上面每个疑点出 1 题，至少 1 题）
-   → 专业技术（role，围绕必备技能与岗位场景，2-3 题）→ 软实力（common，1 题）→ 收尾（closing，动机/期望，1 题）。
-2. 疑点题必须引用简历中的具体说法或缺失点，让候选人解释/举证。
-3. 每题给出：2-3 条追问、5/3/1 三档评分锚点（可观察、可区分）、2-3 条红旗信号、预计分钟数。
+出题要求（简洁精炼、控制输出体量）：
+1. 共 {count} 题，按面试顺序：疑点核查（doubt，1 题；如无疑点则出经历深挖题）
+   → 专业技术（role，围绕必备技能，1-2 题）→ 软实力或收尾（common/closing，1 题）。
+2. 疑点题必须引用简历中的具体说法或缺失点。
+3. 每题输出：**追问 1 条**、**5/3/1 三档锚点各 ≤ 25 字**、**红旗信号 1 条**、预计分钟数。
+4. 语言精炼，不要展开长段落，每字段紧扣要点即可。
 
 严格输出 JSON（不要输出任何其他文字）：
 {{
@@ -99,9 +100,9 @@ def generate_interview_questions(job: dict, candidate: dict,
       "pool": "doubt|role|common|closing",
       "competency": "考察能力点",
       "question": "题目",
-      "followUps": ["追问1", "追问2"],
+      "followUps": ["追问1"],
       "anchors": {{"5": "优秀表现", "3": "合格表现", "1": "不合格表现"}},
-      "redFlags": ["红旗1", "红旗2"],
+      "redFlags": ["红旗1"],
       "expectedMinutes": 5
     }}
   ]

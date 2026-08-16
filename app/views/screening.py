@@ -713,7 +713,7 @@ def _render_interview_questions(c: dict, job: dict, mr: dict) -> None:
     qs = mr.get("interview_questions")
 
     if not qs:
-        with st.spinner("生成面试例题中（结合 JD + 简历 + 疑点）..."):
+        with st.spinner("生成 4 道面试例题中（约需 15 秒 · 结合 JD + 简历 + 疑点）..."):
             try:
                 qs = (generate_interview_questions(job, c, mr)
                       .get("questions", []))
