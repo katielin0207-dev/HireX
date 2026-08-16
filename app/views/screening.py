@@ -11,6 +11,9 @@
   - 匹配结果：candidate["matched_jobs"][job_id] = {...}，
               一份简历可保留对多个岗位的匹配记录，切岗位不覆盖。
 """
+import json
+import os
+
 import streamlit as st
 
 from app.shared import (
@@ -42,6 +45,40 @@ SYSTEM_SOFT = "你是资深技术招聘专家，评估候选人与岗位的软�
 # ────────────────────────────────────────────────────────────
 # 辅助
 # ────────────────────────────────────────────────────────────
+_MOCK_CANDIDATES_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    "mock", "candidate_examples",
+)
+
+
+def _seed_candidates_if_empty() -> None:
+    """Streamlit Cloud 上 sessions/candidates/ 是空的（.gitignore + 每次 rebuild 清空）。
+    库为空时自动从 mock/candidate_examples/ seed 3 份预解析候选人，
+    保证 Demo 一进来就能演示筛选/排名/审核完整链路。
+    有真数据时不覆盖；每个会话最多尝试一次。"""
+    if st.session_state.get("_candidates_seeded"):
+        return
+    if list_candidates():
+        st.session_state["_candidates_seeded"] = True
+        return
+    if not os.path.isdir(_MOCK_CANDIDATES_DIR):
+        return
+    seeded = 0
+    for fname in sorted(os.listdir(_MOCK_CANDIDATES_DIR)):
+        if not fname.endswith(".json") or fname == "jd.json":
+            continue
+        try:
+            with open(os.path.join(_MOCK_CANDIDATES_DIR, fname), encoding="utf-8") as fh:
+                cand = json.load(fh)
+            save_candidate(cand)
+            seeded += 1
+        except Exception:
+            continue
+    st.session_state["_candidates_seeded"] = True
+    if seeded:
+        st.toast(f"演示环境自动加载 {seeded} 份示例候选人", icon="✅")
+
+
 def _degree_level(d: str) -> int:
     if not d:
         return 0
@@ -730,6 +767,7 @@ def _render_interview_questions(c: dict, job: dict, mr: dict) -> None:
 # 入口
 # ────────────────────────────────────────────────────────────
 def render():
+    _seed_candidates_if_empty()
     st.header("📋 简历筛选")
     st.caption("选定海信在招岗位 → AI 匹配评分 → 卡片式审核")
 
